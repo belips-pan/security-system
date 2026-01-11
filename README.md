@@ -104,7 +104,7 @@ docker-compose up -d postgres redis backend
 | **MQTT Broker** | 1883 | IoT Messaging | mosquitto_sub -h localhost -t test |
 | **Flower** | 15555 | Celery Monitoring | <http://localhost:15555> (admin:password) |
 
-##📊 Πρότυπο Δικτύου
+## 📊 Πρότυπο Δικτύου
 
 yaml
 
@@ -126,7 +126,7 @@ gateway: 192.168.56.1
 - Agents VM: 192.168.56.10 (simulated)
 - Frontend VM: 192.168.56.30
 
-##🔧 Δομή Project
+## 🔧 Δομή Project
 
 text
 
@@ -221,7 +221,7 @@ headers=headers)
 - GET /api/topology - Δικτυακή τοπολογία
 - GET /dashboard - Συγκεντρωτικά στατιστικά
 
-** 🔍 Security Scanner Features**
+## 🔍 Security Scanner Features
 
 **Διαθέσιμα Εργαλεία Σάρωσης**
 
@@ -685,4 +685,4 @@ refactor: Βελτιστοποίηση database queries
 
 ### ⚠️ Σημείωση**: Αυτό το σύστημα προορίζεται για εκπαιδευτικούς και ερευνητικούς σκοπούς. Χρησιμοποιήστε το μόνο σε ελεγχόμενα περιβάλλοντα.
 
-### Made with ❤️ για την Ασφάλεια των Βιομηχανικών Συστημάτων
+### Μία προσφορά για την Ασφάλεια των Βιομηχανικών Συστημάτων
