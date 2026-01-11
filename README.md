@@ -21,16 +21,16 @@
 ```mermaid
 flowchart TD
     subgraph "Frontend Layer (VM3)"
-        A[React Dashboard\nhttp://192.168.56.30:3000]
+        A[React Dashboard - 192.168.56.30:3000]
     end
 
     subgraph "Application Layer"
-        B[Backend API (VM1)\nFlask + Celery + PostgreSQL\nhttp://192.168.56.20:15000]
-        C[Agents (VM2)\nRobot/Drone/Camera/IoT]
+        B[Backend API - Flask + Celery + PostgreSQL]
+        C[Agents - Robot/Drone/Camera/IoT]
     end
 
     subgraph "Infrastructure Layer"
-        D[Docker, Redis, Kafka, MQTT\nPostgreSQL, Flower Monitoring]
+        D[Docker, Redis, Kafka, MQTT, PostgreSQL, Flower Monitoring]
     end
 
     A --> B
