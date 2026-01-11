@@ -1,5 +1,5 @@
 
-#SECURITY-SYSTEM BACKEND- Industrial IoT Security Monitoring Platform 🛡️
+# SECURITY-SYSTEM BACKEND- Industrial IoT Security Monitoring Platform 🛡️
 
 <https://img.shields.io/badge/Architecture-Microservices-blue>  
 <https://img.shields.io/badge/Docker-Containers-2496ED>  
@@ -7,7 +7,7 @@
 <https://img.shields.io/badge/Python-3.9-3776AB>  
 <https://img.shields.io/badge/License-MIT-green>
 
-##📋 Περίληψη Προγράμματος
+## 📋 Περίληψη Προγράμματος
 
 **Security-System** είναι μια ολοκληρωμένη πλατφόρμα ασφαλείας για βιομηχανικά IoT συστήματα που παρέχει:
 
@@ -16,7 +16,7 @@
 - Διαχείριση συμβάντων ασφαλείας
 - Ενοποιημένο dashboard για όλα τα IoT agents
 
-##🏗️ Αρχιτεκτονική Συστήματος
+## 🏗️ Αρχιτεκτονική Συστήματος
 
 ```mermaid
 flowchart TD
@@ -48,7 +48,7 @@ flowchart TD
 - **Mosquitto MQTT** (Port 1883) - IoT messaging
 - **Edge Gateway** - Message processing	
 
-##🚀 Γρήγορη Εκκίνηση
+## 🚀 Γρήγορη Εκκίνηση
 
 **Προαπαιτούμενα**
 
@@ -93,7 +93,7 @@ _\# Μόνο βασικές υπηρεσίες_
 
 docker-compose up -d postgres redis backend
 
-##🐳 Docker Services
+## 🐳 Docker Services
 
 | Service | Port | Description | Health Check |
 | --- | --- | --- | --- |
@@ -174,7 +174,7 @@ security-system/
 
 └── create_demo_data.py # Sample data generator
 
-##🔐 Αυθεντικοποίηση & API
+## 🔐 Αυθεντικοποίηση & API
 
 **API Keys (Demo Environment)**
 
@@ -221,7 +221,7 @@ headers=headers)
 - GET /api/topology - Δικτυακή τοπολογία
 - GET /dashboard - Συγκεντρωτικά στατιστικά
 
-**🔍 Security Scanner Features**
+** 🔍 Security Scanner Features**
 
 **Διαθέσιμα Εργαλεία Σάρωσης**
 
@@ -271,7 +271,7 @@ open <http://localhost:15555>
 
 _\# Credentials: admin / password_
 
-##🤖 IoT Agents Configuration
+## 🤖 IoT Agents Configuration
 
 **Υποστηριζόμενοι Τύποι Agents**
 
@@ -311,7 +311,7 @@ json
 
 }
 
-##📊 Database Schema
+## 📊 Database Schema
 
 **Βασικοί Πίνακες**
 
@@ -439,7 +439,7 @@ print(f'Task ID: {task.id}')
 
 "
 
-##🐛 Αντιμετώπιση Προβλημάτων
+## 🐛 Αντιμετώπιση Προβλημάτων
 
 **Συχνά Προβλήματα**
 
@@ -464,7 +464,7 @@ _\# Ειδικοί έλεγχοι_
 
 docker-compose exec backend python -c "from container_scanner import ContainerSecurityScanner; s = ContainerSecurityScanner(); print(f'Docker available: {s.docker_client is not None}')"
 
-##📈 Monitoring & Observability
+## 📈 Monitoring & Observability
 
 **Εργαλεία Παρακολούθησης**
 
@@ -510,7 +510,7 @@ return jsonify({
 
 })
 
-🔄 Workflow Examples
+## 🔄 Workflow Examples
 
 **1\. Πλήρης Σάρωση Συστήματος**
 
@@ -576,7 +576,7 @@ if agent\["status"\] != "active":
 
 send_alert(f"Agent {agent\['id'\]} is {agent\['status'\]}")
 
-##📚 API Documentation
+## 📚 API Documentation
 
 **OpenAPI/Swagger**
 
@@ -634,7 +634,7 @@ json
 
 }
 
-##🏆 Best Practices
+## 🏆 Best Practices
 
 **Security Recommendations**
 
@@ -651,7 +651,7 @@ json
 - Προσαρμογή Celery concurrency
 - Χρήση gzip compression για API responses
 
-**🤝 Συνεισφορά**
+** 🤝 Συνεισφορά**
 
 - Fork το repository
 - Δημιούργησε feature branch
@@ -673,16 +673,16 @@ test: Προσθήκη unit tests
 
 refactor: Βελτιστοποίηση database queries
 
-##📄 Άδεια Χρήσης
+## 📄 Άδεια Χρήσης
 
 Αυτό το project διανέμεται υπό την άδεια MIT. Δείτε το αρχείο [LICENSE](https://license/) για περισσότερες λεπτομέρειες.
 
-**📞 Υποστήριξη & Επαφή**
+** 📞 Υποστήριξη & Επαφή**
 
 - **Issues**: [GitHub Issues](https://github.com/yourusername/security-system/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/yourusername/security-system/discussions)
 - **Email**: <belips@gmx.com>
 
-###⚠️ Σημείωση**: Αυτό το σύστημα προορίζεται για εκπαιδευτικούς και ερευνητικούς σκοπούς. Χρησιμοποιήστε το μόνο σε ελεγχόμενα περιβάλλοντα.
+### ⚠️ Σημείωση**: Αυτό το σύστημα προορίζεται για εκπαιδευτικούς και ερευνητικούς σκοπούς. Χρησιμοποιήστε το μόνο σε ελεγχόμενα περιβάλλοντα.
 
-###Made with ❤️ για την Ασφάλεια των Βιομηχανικών Συστημάτων
+### Made with ❤️ για την Ασφάλεια των Βιομηχανικών Συστημάτων
