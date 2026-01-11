@@ -1,0 +1,40 @@
+# docker/Dockerfile.flower (επεξεργασμένο)
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# 1. DNS fix για build time (προαιρετικό)
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
+    echo "nameserver 1.1.1.1" >> /etc/resolv.conf
+
+# 2. Pip configuration με Κινέζικο mirror
+RUN python -m pip install --upgrade pip && \
+    pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
+    pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn && \
+    pip config set global.timeout 300
+
+# 3. Copy requirements
+COPY src/backend/requirements.txt .
+COPY src/backend/requirements-celery.txt .
+
+# 4. Εγκατάσταση με retry
+RUN for i in {1..3}; do \
+    pip install --no-cache-dir \
+        -r requirements.txt \
+        -r requirements-celery.txt \
+        flower==2.0.1 && break || sleep 15; \
+    done
+
+# 5. Healthcheck script
+RUN echo '#!/bin/sh' > /healthcheck.sh && \
+    echo 'curl -f http://localhost:5555 2>/dev/null || exit 1' >> /healthcheck.sh && \
+    chmod +x /healthcheck.sh
+
+EXPOSE 5555
+
+# 6. Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD /healthcheck.sh
+
+# 7. Βασικό command
+CMD ["flower", "--broker=redis://redis:6379/0", "--port=5555", "--basic_auth=admin:password"]

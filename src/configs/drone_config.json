@@ -1,0 +1,25 @@
+{
+  "agent_id": "DRONE-01",
+  "agent_type": "drone_agent",
+  "api_key": "DWVkXiDJ_IIbdkxRTSIKjAhe4bFUuvhFgiMfWhaII",
+  "location": "Outdoor_Yard_Zone_B",
+  "telemetry_frequency_seconds": 10,
+  "metrics": {
+    "gps": { "enabled": true },
+    "battery": { "min_threshold": 20 },
+    "geofence": {
+      "allowed_area": {
+        "lat_min": 37.950000,
+        "lat_max": 38.000000,
+        "lon_min": 23.650000,
+        "lon_max": 23.750000
+      }
+    }
+  },
+  "reporting": {
+    "alert_thresholds": {
+      "critical": ["geofence_violation"],
+      "warning": ["low_battery"]
+    }
+  }
+}

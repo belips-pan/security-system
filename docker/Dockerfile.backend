@@ -1,0 +1,77 @@
+# docker/Dockerfile.backend
+FROM python:3.9-slim-bullseye
+
+WORKDIR /app
+
+# Εγκατάσταση docker client CLI (απλοποιημένη)
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    docker.io \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements files
+COPY src/backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/backend/requirements-celery.txt .
+RUN pip install --no-cache-dir -r requirements-celery.txt
+
+# Copy backend source code
+COPY src/backend/ .
+COPY src/configs/ ./configs/
+
+# Create necessary directories
+RUN mkdir -p logs
+
+# Δημιουργία ΣΩΣΤΟΥ gunicorn config file
+RUN cat > /gunicorn.conf.py << "CONFIG_END"
+bind = "0.0.0.0:5000"
+workers = 2
+worker_class = "sync"
+timeout = 120
+keepalive = 5
+errorlog = "/app/logs/gunicorn-error.log"
+accesslog = "/app/logs/gunicorn-access.log"
+loglevel = "info"
+capture_output = True
+CONFIG_END
+
+# Health check script
+RUN cat > /healthcheck.sh << "HEALTH_END"
+#!/bin/sh
+if curl -f http://localhost:5000/health > /dev/null 2>/dev/null; then
+    echo "Flask app: Healthy"
+    exit 0
+else
+    sleep 2
+    if curl -f http://localhost:5000/health > /dev/null 2>/dev/null; then
+        echo "Flask app: Healthy (on retry)"
+        exit 0
+    else
+        echo "Flask app: Unhealthy"
+        exit 1
+    fi
+fi
+HEALTH_END
+
+RUN chmod +x /healthcheck.sh
+
+EXPOSE 5000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD /healthcheck.sh
+
+ENV PATH="/usr/bin:${PATH}"
+ENV PYTHONPATH="/app:$PYTHONPATH"
+ENV FLASK_APP=app.py
+
+# Run as non-root user for security
+RUN groupadd -g 1000 appuser && \
+    useradd -r -u 1000 -g appuser appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
+
+CMD ["gunicorn", "--config", "/gunicorn.conf.py", "app:app"]

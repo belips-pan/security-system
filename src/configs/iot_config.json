@@ -1,0 +1,32 @@
+{
+  "agent_id": "raspberrypi-01",
+  "version": "1.1",
+  "api_key": "wEMFje4up11GLvqINeMix4j_cJqUu7wLLMXYb15BFmY",
+  "config_timestamp": "2025-09-01T10:00:00Z",
+  "metrics": {
+    "system_metrics": {
+      "collect": true,
+      "frequency_seconds": 30,
+      "parameters": {
+        "cpu_threshold_percent": 85,
+        "memory_threshold_mb": 512
+      }
+    },
+    "network_connections": {
+      "collect": true,
+      "frequency_seconds": 60,
+      "parameters": {
+        "allowed_destinations": ["192.168.1.10", "192.168.1.20", "127.0.0.1"],
+        "blocked_ports": [22, 23]
+      }
+    },
+    "process_list": {
+      "collect": true,
+      "frequency_seconds": 120,
+      "parameters": {
+        "allowed_processes": ["python", "sshd", "systemd", "pi-app", "mosquitto"]
+      }
+    }
+  }
+}
+

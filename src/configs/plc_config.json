@@ -1,0 +1,52 @@
+{
+  "agent_id": "PLC001",
+  "agent_type": "plc_agent",
+  "api_key" : "kGha2GWsIsJhs6UTh3smngAPBqdMmeMd2XRKp317JeA",
+  "location": "Warehouse_Main_Line_1",
+  "telemetry_frequency_seconds": 15,
+  "metrics": {
+    "logic_and_firmware_integrity": {
+      "current_checksum": "a7c3e9f1b24d9...",
+      "baseline_checksum": "a7c3e9f1b24d9...",
+      "last_verified": "2025-09-01T09:55:00Z"
+    },
+    "operational_state_changes": {
+      "current_state": "RUN",
+      "last_state": "RUN",
+      "last_change_timestamp": "2025-09-01T08:15:00Z",
+      "anomaly_flag": false
+    },
+    "register_tag_value_anomalies": {
+      "monitored_registers": {
+        "motor_speed_rpm": {
+          "expected_range": [0, 1500]
+        },
+        "conveyor_temp_c": {
+          "expected_range": [0, 70]
+        }
+      }
+    },
+    "communication_auditing": {
+      "allowed_protocols": ["Modbus/TCP", "DNP3"],
+      "allowed_ips": ["192.168.1.10", "192.168.1.11"]
+    },
+    "remote_access": {
+      "unauthorized_attempts_threshold": 2
+    }
+  },
+  "scoring_model": {
+    "sub_scores": {
+      "logic_integrity": {"risk_points": 100, "current": 100},
+      "state_change": {"risk_points": 80, "current": 100},
+      "register_anomaly": {"risk_points": 70, "current": 100},
+      "communication_auditing": {"risk_points": 60, "current": 100},
+      "remote_access": {"risk_points": 50, "current": 100}
+    },
+    "composite_security_score": 100
+  },
+  "alert_thresholds": {
+    "secure": 80,
+    "moderate_risk": 50,
+    "high_risk": 0
+  }
+}

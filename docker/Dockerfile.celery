@@ -1,0 +1,83 @@
+# docker/Dockerfile.celery
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# 1. DNS fix για build time
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
+    echo "nameserver 1.1.1.1" >> /etc/resolv.conf
+
+# 2. System packages
+RUN apt-get update && apt-get install -y \
+    nmap \
+    curl \
+    docker.io \
+    && rm -rf /var/lib/apt/lists/*
+
+# 3. Pip configuration με Κινέζικο mirror
+RUN python -m pip install --upgrade pip && \
+    pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
+    pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn && \
+    pip config set global.timeout 300
+
+# 4. Copy requirements
+COPY src/backend/requirements.txt .
+COPY src/backend/requirements-celery.txt .
+
+# 5. Εγκατάσταση με retry
+RUN for i in {1..3}; do \
+    pip install --no-cache-dir \
+        -r requirements.txt \
+        -r requirements-celery.txt \
+        flower==2.0.1 && break || sleep 15; \
+    done
+
+# 6. Εγκατάσταση Docker Python client
+RUN pip install docker
+
+# 7. Nuclei
+RUN if [ "$WORKER_TYPE" = "scanner" ]; then \
+    apt-get update && apt-get install -y wget unzip && \
+    wget https://github.com/projectdiscovery/nuclei/releases/download/v3.2.8/nuclei_3.2.8_linux_amd64.zip && \
+    unzip nuclei_3.2.8_linux_amd64.zip -d /usr/local/bin/ && \
+    rm nuclei_3.2.8_linux_amd64.zip; \
+    fi
+
+# 8. Copy source
+COPY src/backend/ ./src/backend/
+COPY src/configs/ ./src/configs/
+
+# 9. Set Python path
+ENV PYTHONPATH="/app:$PYTHONPATH"
+
+# 10. Create celery user (UID 1000, GID 1000)
+RUN groupadd -g 1000 celeryuser && \
+    useradd -u 1000 -g celeryuser -s /bin/sh -m celeryuser
+
+# 11. Προσθήκη χρήστη στην docker group (για permissions)
+RUN groupadd -g 999 docker 2>/dev/null || true && \
+    usermod -aG docker celeryuser 2>/dev/null || true
+
+# 12. Set permissions
+RUN chown -R celeryuser:celeryuser /app
+
+# 13. Create SIMPLE entrypoint script (FIXED)
+# Το entrypoint.sh θα κάνει μόνο το setup, όχι την εκτέλεση
+RUN echo '#!/bin/sh' > /entrypoint.sh && \
+    echo 'set -e' >> /entrypoint.sh && \
+    echo 'exec "$@"' >> /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
+# 14. Create healthcheck script
+RUN echo '#!/bin/sh' > /healthcheck.sh && \
+    echo 'celery -A src.backend.celery_tasks inspect ping 2>/dev/null | grep -q "ok" || exit 1' >> /healthcheck.sh && \
+    chmod +x /healthcheck.sh
+
+# 15. Set entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
+
+# 16. Switch to celery user
+USER celeryuser
+
+# 17. Default command (will be overridden by docker-compose)
+CMD ["worker", "--loglevel=info"]

@@ -1,0 +1,95 @@
+{
+  "agent_id": "Robot_Arm_001",
+  "agent_type": "robot_agent",
+  "api_key": "DVvkafojenj6091wusBSJbL02gIawkIFt2oS8rJIF4U",
+  "location": "WMS_Zone_A_Picking",
+  "telemetry_frequency_seconds": 10,
+  "metrics": {
+    "command_anomalies": {
+      "unauthorized_source": {
+        "enabled": true,
+        "risk_points": 80
+      },
+      "out_of_range_commands": {
+        "max_speed_mps": 1.5,
+        "max_payload_kg": 10,
+        "restricted_tools": ["welding_torch"],
+        "risk_points": 50
+      },
+      "repeated_injection_threshold": {
+        "count": 3,
+        "risk_points": 40
+      }
+    },
+    "behavior_deviation": {
+      "joint_angle_tolerance_deg": {
+        "value": 5,
+        "risk_points": 20
+      },
+      "workcell_boundary_meters": {
+        "x_min": 0,
+        "x_max": 5,
+        "y_min": 0,
+        "y_max": 5,
+        "risk_points": 25
+      },
+      "idle_timeout_sec": {
+        "value": 60,
+        "risk_points": 10
+      }
+    },
+    "sensor_integrity": {
+      "proximity_sensor": {
+        "false_obstacle_threshold": 2,
+        "loss_of_signal_timeout_sec": 5,
+        "risk_points": 15
+      },
+      "vision_system": {
+        "object_mismatch_alert": true,
+        "tamper_detection": true,
+        "risk_points": 30
+      }
+    },
+    "network_security": {
+      "allowed_ips": ["192.168.10.20", "192.168.10.21"],
+      "require_encryption": true,
+      "risk_points": 50
+    },
+    "safety_overrides": {
+      "unauthorized_estop": {
+        "enabled": true,
+        "risk_points": 100
+      },
+      "interlock_bypass_attempt": {
+        "enabled": true,
+        "risk_points": 100
+      }
+    },
+    "operational_integrity": {
+      "battery_voltage_min": {
+        "value": 22.0,
+        "risk_points": 15
+      },
+      "unexpected_shutdown": {
+        "enabled": true,
+        "risk_points": 40
+      },
+      "mechanical_stress_threshold": {
+        "value": 80,
+        "risk_points": 20
+      }
+    }
+  },
+  "reporting": {
+    "alert_thresholds": {
+      "critical": ["unauthorized_source", "interlock_bypass_attempt", "unauthorized_estop"],
+      "warning": ["joint_angle_tolerance_deg", "false_obstacle_threshold"]
+    }
+  },
+  "scoring_model": {
+    "method": "subtractive",
+    "max_score": 100,
+    "current_score": 100,
+    "last_update": "2025-09-01T12:00:00Z"
+  }
+}

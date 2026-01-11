@@ -1,0 +1,69 @@
+C:\PANAGIOTIS\METAPTYXIAKO\DIATRIVI\SECURITY-SYSTEM
+│   .env
+│   celery_tasks_host.py
+│   check_backend.sh
+│   check_celery.py
+│   create_demo_data.py
+│   init_db.py
+│   README.md
+│   run_all.sh
+│   sec-sys-tree.txt
+│   test_frontend_scanner.py
+│   test_scanner_endpoint.py
+│
+├───docker
+│       check.sh
+│       docker-compose.yml
+│       Dockerfile.agents
+│       Dockerfile.backend
+│       Dockerfile.celery
+│       Dockerfile.flower
+│       Dockerfile.flower.fixed
+│       Dockerfile.gateway
+│       fix_celery.sh
+│       flower_healthcheck.sh
+│       init.sql
+│       mosquitto.conf
+│       start-fast.sh
+│       start.sh
+│       start_system.sh
+│       test_celery.sh
+│       unified_schema.sql
+│       wait-for-backend.sh.backup
+│       wait_for_backend.sh
+│
+└───src
+    ├───agents
+    │       camera_agent.py
+    │       drone_agent.py
+    │       iot_agent.py
+    │       mqtt_agent.py
+    │       plc_agent.py
+    │       requirements.txt
+    │       robot_agent.py
+    │
+    ├───backend
+    │   │   app.py
+    │   │   auth.py
+    │   │   celery_tasks.py
+    │   │   container_scanner.py
+    │   │   database.py
+    │   │   migrations.py
+    │   │   models.py
+    │   │   requirements-celery.txt
+    │   │   requirements.txt
+    │   │
+    │   └───instance
+    │           security_monitoring.db
+    │
+    ├───configs
+    │       .env
+    │       camera_config.json
+    │       drone_config.json
+    │       iot_config.json
+    │       plc_config.json
+    │       robot_config.json
+    │
+    └───gateway
+            edge_gateway.py
+            requirements.txt

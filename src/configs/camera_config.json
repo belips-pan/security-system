@@ -1,0 +1,58 @@
+{
+  "agent_id": "CAM-WH-01",
+  "agent_type": "camera_agent",
+  "api_key": "QIFDkxVGMQ0dzMnn90-GlqzBpMVr4425FRIYvAIyFTU",
+  "location": "Warehouse Zone A - Entrance",
+  "last_update": "2025-09-01T10:00:00Z",
+  "specs": {
+    "resolution": "1920x1080",
+    "fps": 30,
+    "night_vision": true,
+    "field_of_view": "120 degrees"
+  },
+  "security_features": {
+    "motion_detection": {
+      "enabled": true,
+      "detection_zones": [
+        {"zone_id": 1, "coordinates": [100, 200, 400, 600]},
+        {"zone_id": 2, "coordinates": [500, 200, 800, 600]}
+      ],
+      "sensitivity": "medium"
+    },
+    "tampering_detection": {
+      "enabled": true,
+      "alert_priority": "critical",
+      "detection_types": ["occlusion", "defocus", "blinding_light"]
+    },
+    "object_detection": {
+      "enabled": true,
+      "authorized_objects": ["forklift", "pallet", "helmet"],
+      "unauthorized_objects": ["firearm", "knife", "crowbar", "unattended_bag"],
+      "confidence_threshold": 0.85
+    },
+    "liveness_detection": {
+      "enabled": true,
+      "time_threshold_seconds": 300,
+      "alert_priority": "warning"
+    }
+  },
+  "event_output": {
+    "format": "JSON",
+    "protocol": "MQTT"
+  },
+  "topics": {
+    "logs": "security/cameras/CAM-WH-01/logs",
+    "alerts": "security/cameras/CAM-WH-01/alerts",
+    "anomalies": "security/cameras/CAM-WH-01/anomalies"
+  },
+  "anomaly_score": {
+    "calibration": "system_specific",
+    "current_score": 0.0,
+    "thresholds": {
+      "info": 0.2,
+      "warning": 0.5,
+      "critical": 0.8
+    }
+  },
+  "telemetry_frequency_seconds": 60
+}
