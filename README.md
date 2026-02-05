@@ -456,32 +456,32 @@ flowchart TD
     C -->|Ναι| D[Δημιουργία Celery Task]
     C -->|Όχι| E[Απόρριψη - Σφάλμα]
     
-    D --> F[Ουρά Εργασιών<br/>Redis Queue]
-    F --> G{Worker<br/>Διαθέσιμος;}
+    D --> F[Ουρά Εργασιών Redis Queue]
+    F --> G{Worker Διαθέσιμος;}
     G -->|Ναι| H[Ανάθεση Εργασίας]
     G -->|Όχι| I[Αναμονή]
     I --> F
     
     H --> J[Εκτέλεση Docker Container]
-    J --> K[Εκτέλεση Scan Tool<br/>(nmap/nuclei)]
+    J --> K[Εκτέλεση Scan Tool nmap/nuclei]
     K --> L[Συλλογή Αποτελεσμάτων]
     
-    L --> M{Scan<br/>Επιτυχής;}
+    L --> M{Scan Επιτυχής;}
     M -->|Ναι| N[Παρσάρισμα Αποτελεσμάτων]
     M -->|Όχι| O[Καταγραφή Σφάλματος]
     
     N --> P[Ανάλυση Ευπαθειών]
-    P --> Q[Scoring (CVSS)]
+    P --> Q[Scoring CVSS]
     Q --> R[Αποθήκευση Αποτελεσμάτων]
     
     O --> S[Αναφορά Σφάλματος]
-    R --> T[Δημιουργία Alerts<br/>για Κρίσιμες Ευπάθειες]
+    R --> T[Δημιουργία Alerts για Κρίσιμες Ευπάθειες]
     
     T --> U[Ενημέρωση Χρήστη]
     S --> U
     
-    %% Container lifecycle
-    subgraph Docker[Container Management]
+    %% Container lifecycle - ΑΠΛΟΙ ΟΡΙΣΜΟΙ
+    subgraph Docker
         V[Pull Docker Image]
         W[Create Container]
         X[Execute Command]
@@ -513,17 +513,17 @@ flowchart TD
 ```mermaid
 graph TB
     %% Actors
-    IoT_Device[IoT Device<br/>Camera, Drone, Robot, Sensor, PLC]
-    Security_Analyst[Security Analyst<br/>/ Operator]
+    IoT_Device[IoT Device-Camera, Drone, Robot, Sensor, PLC]
+    Security_Analyst[Security Analyst-/ Operator]
     System_Administrator[System Administrator]
-    Monitoring_System[Monitoring System<br/>Frontend / External]
-    Security_Scanner[Security Scanner<br/>Automated Tool]
+    Monitoring_System[Monitoring System-Frontend / External]
+    Security_Scanner[Security Scanner-Automated Tool]
     
     %% Use Cases - Agent Management
-    UC1[UC-01: Register Device<br/>Register new IoT device in system]
-    UC2[UC-02: Send Telemetry Data<br/>Send security metrics to backend]
-    UC3[UC-03: Update Device Status<br/>Report operational status]
-    UC4[UC-04: Receive Configuration<br/>Get updated security policies]
+    UC1[UC-01: Register Device-Register new IoT device in system]
+    UC2[UC-02: Send Telemetry Data-Send security metrics to backend]
+    UC3[UC-03: Update Device Status-Report operational status]
+    UC4[UC-04: Receive Configuration-Get updated security policies]
     
     %% Use Cases - Security Monitoring
     UC5[UC-05: View Security Dashboard<br/>Monitor overall system security]
