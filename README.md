@@ -356,102 +356,155 @@ classDiagram
 
 ### Activity Diagram για Telemetry Processing
 
+#### 📊 ACTIVITY DIAGRAM 1: ΣΥΝΟΛΙΚΗ ΔΙΑΔΙΚΑΣΙΑ
 ```mermaid
 flowchart TD
-    A[Start System] --> B[Initialize Components]
-    B --> C{Database Available?}
-    C -->|Yes| D[Create Tables]
-    C -->|No| E[Wait & Retry]
+    A[Εκκίνηση Συστήματος] --> B[Αρχικοποίηση Components]
+    B --> C{Βάση Δεδομένων<br/>Διαθέσιμη;}
+    C -->|Ναι| D[Δημιουργία Πινάκων]
+    C -->|Όχι| E[Αναμονή & Επανάληψη]
     E --> C
-    D --> F[Load Configuration]
-    F --> G[Start Flask Server]
-    G --> H[Listen for Requests]
+    D --> F[Φόρτωση Ρυθμίσεων]
+    F --> G[Εκκίνηση Flask Server]
+    G --> H[Αναμονή Αιτημάτων]
     
-    H --> I{Request Type?}
+    H --> I{Τύπος Αίτησης;}
     
-    %% === HTTP REQUEST HANDLING ===
-    I -->|Telemetry| J[Receive Telemetry Data]
-    J --> M[Validate API Key]
-    M --> N{Valid API Key?}
-    N -->|Yes| O[Process Telemetry]
-    N -->|No| P[Return 401 Unauthorized]
+    %% Main branches
+    I -->|Telemetry| J[Λήψη Δεδομένων<br/>από Agents]
+    I -->|API Κλήση| K[Πιστοποίηση<br/>Χρήστη]
+    I -->|Security Scan| L[Ουρά Εργασιών<br/>Scanning]
     
-    O --> Q[Store in Database]
-    Q --> R[Analyze for Anomalies]
-    R --> S{Anomaly Detected?}
-    S -->|Yes| T[Create Alert]
-    S -->|No| U[Update Agent Status]
-    T --> U
+    %% Process flows
+    J --> M[Επεξεργασία<br/>& Αποθήκευση]
+    M --> N[Αναφορά<br/>Ολοκλήρωσης]
     
-    I -->|API Call| K[Authenticate Request]
-    K --> V[Check Authentication]
-    V --> W{Authenticated?}
-    W -->|Yes| X[Process API Request]
-    W -->|No| Y[Return Error]
-    X --> Z[Return Response]
+    K --> O[Εκτέλεση<br/>API Λογικής]
+    O --> P[Απόκριση<br/>στον Χρήστη]
     
-    I -->|Security Scan| L[Queue Scan Task]
-    L --> AA[Validate Scan Request]
-    AA --> AB[Create Celery Task]
-    AB --> AC[Execute in Container]
-    AC --> AD[Parse Results]
-    AD --> AE[Store Results]
-    AE --> AF[Create Alerts if Vulnerabilities]
+    L --> Q[Εκτέλεση Scan<br/>σε Container]
+    Q --> R[Αποθήκευση<br/>Αποτελεσμάτων]
     
-    %% === BACKGROUND PROCESSING ===
-    AG[Start Celery Worker] --> AH[Monitor Task Queue]
-    AH --> AI{Task Available?}
-    AI -->|Yes| AJ[Execute Task]
-    AI -->|No| AH
-    AJ --> AK[Update Task Status]
-    AK --> AL[Store Results]
-    AL --> AH
-    
-    AM[Start MQTT Listener] --> AN[Subscribe to Topics]
-    AN --> AO{Message Received?}
-    AO -->|Yes| AP[Process MQTT Message]
-    AO -->|No| AN
-    AP --> AQ[Convert to Telemetry]
-    AQ --> AR[Forward to HTTP endpoint]
-    
-    %% === MONITORING ACTIVITIES ===
-    AS[Health Check Scheduler] --> AT[Check System Health]
-    AT --> AU{All Systems Healthy?}
-    AU -->|Yes| AV[Log Status]
-    AU -->|No| AW[Send Alert]
-    AV --> AS
-    AW --> AS
-    
-    AX[Performance Monitor] --> AY[Collect Metrics]
-    AY --> AZ[Analyze Trends]
-    AZ --> BA{Performance Degradation?}
-    BA -->|Yes| BB[Trigger Auto-scaling]
-    BA -->|No| AX
-    BB --> AX
-    
-    %% === RETURN CONNECTIONS ===
-    U --> H
+    %% Return to listening
+    N --> H
     P --> H
-    Y --> H
-    Z --> H
-    AF --> H
-    AR --> J
+    R --> H
     
-    %% Styling - ΚΑΝΕΝΑ subgraph στο classDef!
-    classDef startEnd fill:#ffcccc,stroke:#ff0000,stroke-width:2px
-    classDef decision fill:#ffffcc,stroke:#ffcc00,stroke-width:2px
-    classDef process fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    classDef area1 fill:#e3f2fd,stroke:#1565c0
-    classDef area2 fill:#f3e5f5,stroke:#7b1fa2
-    classDef area3 fill:#e8f5e8,stroke:#2e7d32
-    classDef area4 fill:#fff3e0,stroke:#f57c00
+    %% Styling
+    classDef startEnd fill:#ffcccc,stroke:#ff0000
+    classDef decision fill:#ffffcc,stroke:#ffcc00
+    classDef process fill:#ccffcc,stroke:#00cc00
     
     class A startEnd
-    class C,I,N,S,W,AI,AO,AU,BA decision
-    class B,D,E,F,G,H process
-    class J,M,O,P,Q,R,T,U,K,V,X,Y,Z,L,AA,AB,AC,AD,AE,AF area2
-    class AG,AH,AJ,AK,AL,AM,AN,AP,AQ,AR area3
-    class AS,AT,AV,AW,AX,AY,AZ,BB area4  
+    class C,I decision
+    class B,D,E,F,G,H,J,K,L,M,N,O,P,Q,R process
+```
+
+#### 🔄 ACTIVITY DIAGRAM 2: TELEMETRY PROCESSING
+
+```mermaid
+flowchart TD
+    A[Λήψη Telemetry Data] --> B[Επικύρωση API Key]
+    B --> C{Έγκυρο API Key;}
+    C -->|Ναι| D[Ανάλυση Δεδομένων]
+    C -->|Όχι| E[Απόρριψη - 401]
+    
+    D --> F[Υπολογισμός<br/>Security Score]
+    F --> G[Ανίχνευση<br/>Ανομαλιών]
+    G --> H{Βρέθηκαν<br/>Ανωμαλίες;}
+    
+    H -->|Ναι| I[Δημιουργία Alert]
+    I --> J[Αποστολή<br/>Ειδοποιήσεων]
+    H -->|Όχι| K[Ενημέρωση Κατάστασης<br/>Agent]
+    
+    J --> L[Αποθήκευση<br/>στο Database]
+    K --> L
+    E --> M[Καταγραφή<br/>Σφάλματος]
+    
+    L --> N[Ολοκλήρωση<br/>Επεξεργασίας]
+    M --> N
+    
+    %% Database operations
+    subgraph DB[Λειτουργίες Βάσης]
+        O[Εγγραφή Telemetry]
+        P[Ενημέρωση Agent Status]
+        Q[Δημιουργία Alert Record]
+    end
+    
+    D --> O
+    K --> P
+    I --> Q
+    
+    %% Styling
+    classDef startEnd fill:#ffcccc,stroke:#ff0000
+    classDef decision fill:#ffffcc,stroke:#ffcc00
+    classDef process fill:#ccffcc,stroke:#00cc00
+    classDef db fill:#e3f2fd,stroke:#1565c0
+    
+    class A,N startEnd
+    class C,H decision
+    class B,D,E,F,G,I,J,K,L,M process
+    class O,P,Q db
+```
+
+#### 🔍 ACTIVITY DIAGRAM 3: SECURITY SCANNING
+
+```mermaid
+flowchart TD
+    A[Αίτημα Security Scan] --> B[Επικύρωση Παραμέτρων]
+    B --> C{Έγκυρες Παράμετροι;}
+    C -->|Ναι| D[Δημιουργία Celery Task]
+    C -->|Όχι| E[Απόρριψη - Σφάλμα]
+    
+    D --> F[Ουρά Εργασιών<br/>Redis Queue]
+    F --> G{Worker<br/>Διαθέσιμος;}
+    G -->|Ναι| H[Ανάθεση Εργασίας]
+    G -->|Όχι| I[Αναμονή]
+    I --> F
+    
+    H --> J[Εκτέλεση Docker Container]
+    J --> K[Εκτέλεση Scan Tool<br/>(nmap/nuclei)]
+    K --> L[Συλλογή Αποτελεσμάτων]
+    
+    L --> M{Scan<br/>Επιτυχής;}
+    M -->|Ναι| N[Παρσάρισμα Αποτελεσμάτων]
+    M -->|Όχι| O[Καταγραφή Σφάλματος]
+    
+    N --> P[Ανάλυση Ευπαθειών]
+    P --> Q[Scoring (CVSS)]
+    Q --> R[Αποθήκευση Αποτελεσμάτων]
+    
+    O --> S[Αναφορά Σφάλματος]
+    R --> T[Δημιουργία Alerts<br/>για Κρίσιμες Ευπάθειες]
+    
+    T --> U[Ενημέρωση Χρήστη]
+    S --> U
+    
+    %% Container lifecycle
+    subgraph Docker[Container Management]
+        V[Pull Docker Image]
+        W[Create Container]
+        X[Execute Command]
+        Y[Collect Output]
+        Z[Cleanup Container]
+    end
+    
+    H --> V
+    V --> W
+    W --> X
+    X --> Y
+    Y --> Z
+    
+    %% Styling
+    classDef startEnd fill:#ffcccc,stroke:#ff0000
+    classDef decision fill:#ffffcc,stroke:#ffcc00
+    classDef process fill:#ccffcc,stroke:#00cc00
+    classDef docker fill:#f3e5f5,stroke:#7b1fa2
+    
+    class A,U startEnd
+    class C,G,M decision
+    class B,D,E,F,H,I,J,K,L,N,O,P,Q,R,S,T process
+    class V,W,X,Y,Z docker
 ```
 
 
