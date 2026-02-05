@@ -367,55 +367,138 @@ flowchart TD
     F --> G[Start Flask Server]
     G --> H[Listen for Requests]
     
-    %% Ορισμός subgraph ως ξεχωριστό flowchart
-    subgraph HTTP_Request_Handling [HTTP Request Handling]
-        direction TB
-        H1[Listen for Requests] --> I{Request Type?}
-        I -->|Telemetry| J[Receive Telemetry Data]
-        I -->|API Call| K[Authenticate Request]
-        I -->|Security Scan| L[Queue Scan Task]
-        
-        J --> M[Validate API Key]
-        M --> N{Valid?}
-        N -->|Yes| O[Process Telemetry]
-        N -->|No| P[Return 401 Unauthorized]
-        
-        O --> Q[Store in Database]
-        Q --> R[Analyze for Anomalies]
-        R --> S{Anomaly Detected?}
-        S -->|Yes| T[Create Alert]
-        S -->|No| U[Update Agent Status]
-        T --> U
-        
-        K --> V[Check Authentication]
-        V --> W{Authenticated?}
-        W -->|Yes| X[Process API Request]
-        W -->|No| Y[Return Error]
-        X --> Z[Return Response]
-        
-        L --> AA[Validate Scan Request]
-        AA --> AB[Create Celery Task]
-        AB --> AC[Execute in Container]
-        AC --> AD[Parse Results]
-        AD --> AE[Store Results]
-        AE --> AF[Create Alerts if Vulnerabilities]
+    H --> I{Request Type?}
+    I -->|Telemetry| J[Receive Telemetry Data]
+    I -->|API Call| K[Authenticate Request]
+    I -->|Security Scan| L[Queue Scan Task]
+    
+    J --> M[Validate API Key]
+    M --> N{Valid?}
+    N -->|Yes| O[Process Telemetry]
+    N -->|No| P[Return 401 Unauthorized]
+    
+    O --> Q[Store in Database]
+    Q --> R[Analyze for Anomalies]
+    R --> S{Anomaly Detected?}
+    S -->|Yes| T[Create Alert]
+    S -->|No| U[Update Agent Status]
+    T --> U
+    
+    K --> V[Check Authentication]
+    V --> W{Authenticated?}
+    W -->|Yes| X[Process API Request]
+    W -->|No| Y[Return Error]
+    X --> Z[Return Response]
+    
+    L --> AA[Validate Scan Request]
+    AA --> AB[Create Celery Task]
+    AB --> AC[Execute in Container]
+    AC --> AD[Parse Results]
+    AD --> AE[Store Results]
+    AE --> AF[Create Alerts if Vulnerabilities]
+    
+    %% Background Processing (χωρίς subgraph)
+    AG[Start Celery Worker] --> AH[Monitor Task Queue]
+    AH --> AI{Task Available?}
+    AI -->|Yes| AJ[Execute Task]
+    AI -->|No| AH
+    AJ --> AK[Update Task Status]
+    AK --> AL[Store Results]
+    AL --> AH
+    
+    AM[Start MQTT Listener] --> AN[Subscribe to Topics]
+    AN --> AO{Message Received?}
+    AO -->|Yes| AP[Process MQTT Message]
+    AO -->|No| AN
+    AP --> AQ[Convert to Telemetry]
+    AQ --> AR[Forward to HTTP endpoint]
+    
+    %% Monitoring Activities (χωρίς subgraph)
+    AS[Health Check Scheduler] --> AT[Check System Health]
+    AT --> AU{All Systems Healthy?}
+    AU -->|Yes| AV[Log Status]
+    AU -->|No| AW[Send Alert]
+    AV --> AS
+    AW --> AS
+    
+    AX[Performance Monitor] --> AY[Collect Metrics]
+    AY --> AZ[Analyze Trends]
+    AZ --> BA{Performance Degradation?}
+    BA -->|Yes| BB[Trigger Auto-scaling]
+    BA -->|No| AX
+    BB --> AX
+    
+    %% Τώρα οι συνδέσεις
+    U --> H
+    P --> H
+    Y --> H
+    Z --> H
+    AF --> H
+    AR --> J
+    
+    %% Grouping με dotted lines για να δείχνει subgraphs
+    subgraph group1 [HTTP Request Handling]
+        J
+        M
+        N
+        O
+        P
+        Q
+        R
+        S
+        T
+        U
+        K
+        V
+        W
+        X
+        Y
+        Z
+        L
+        AA
+        AB
+        AC
+        AD
+        AE
+        AF
     end
     
-    subgraph Background_Processing [Background Processing]
-        direction TB
-        AG[Start Celery Worker] --> AH[Monitor Task Queue]
-        AH --> AI{Task Available?}
-        AI -->|Yes| AJ[Execute Task]
-        AI -->|No| AH
-        AJ --> AK[Update Task Status]
-        AK --> AL[Store Results]
-        AL --> AH
-        
-        AM[Start MQTT Listener] --> AN[Subscribe to Topics]
-        AN --> AO{Message Received?}
-        AO -->|Yes| AP[Process MQTT Message]
-        AO -->|No| AN
-        AP --> AQ[Convert to Telemetry]     
+    subgraph group2 [Background Processing]
+        AG
+        AH
+        AI
+        AJ
+        AK
+        AL
+        AM
+        AN
+        AO
+        AP
+        AQ
+        AR
+    end
+    
+    subgraph group3 [Monitoring Activities]
+        AS
+        AT
+        AU
+        AV
+        AW
+        AX
+        AY
+        AZ
+        BA
+        BB
+    end
+    
+    %% Styling
+    classDef startEnd fill:#ffcccc,stroke:#ff0000,stroke-width:2px
+    classDef decision fill:#ffffcc,stroke:#ffcc00,stroke-width:2px
+    classDef process fill:#ccffcc,stroke:#00cc00,stroke-width:2px
+    
+    class A startEnd
+    class C,I,N,S,W,AI,AO,AU,BA decision
+    class B,D,E,F,G,H,J,K,L,M,O,P,Q,R,T,U,V,X,Y,Z,AA,AB,AC,AD,AE,AF,AG,AH,AJ,AK,AL,AM,AN,AP,AQ,AR,AS,AT,AV,AW,AX,AY,AZ,BB process   
 ```
 
 
