@@ -368,10 +368,8 @@ flowchart TD
     G --> H[Listen for Requests]
     
     H --> I{Request Type?}
-    I -->|Telemetry| J[Receive Telemetry Data]
-    I -->|API Call| K[Authenticate Request]
-    I -->|Security Scan| L[Queue Scan Task]
     
+    I -->|Telemetry| J[Receive Telemetry Data]
     J --> M[Validate API Key]
     M --> N{Valid?}
     N -->|Yes| O[Process Telemetry]
@@ -384,12 +382,14 @@ flowchart TD
     S -->|No| U[Update Agent Status]
     T --> U
     
+    I -->|API Call| K[Authenticate Request]
     K --> V[Check Authentication]
     V --> W{Authenticated?}
     W -->|Yes| X[Process API Request]
     W -->|No| Y[Return Error]
     X --> Z[Return Response]
     
+    I -->|Security Scan| L[Queue Scan Task]
     L --> AA[Validate Scan Request]
     AA --> AB[Create Celery Task]
     AB --> AC[Execute in Container]
@@ -397,7 +397,7 @@ flowchart TD
     AD --> AE[Store Results]
     AE --> AF[Create Alerts if Vulnerabilities]
     
-    %% Background Processing (χωρίς subgraph)
+    %% Background Processing
     AG[Start Celery Worker] --> AH[Monitor Task Queue]
     AH --> AI{Task Available?}
     AI -->|Yes| AJ[Execute Task]
@@ -413,7 +413,7 @@ flowchart TD
     AP --> AQ[Convert to Telemetry]
     AQ --> AR[Forward to HTTP endpoint]
     
-    %% Monitoring Activities (χωρίς subgraph)
+    %% Monitoring Activities
     AS[Health Check Scheduler] --> AT[Check System Health]
     AT --> AU{All Systems Healthy?}
     AU -->|Yes| AV[Log Status]
@@ -428,16 +428,20 @@ flowchart TD
     BA -->|No| AX
     BB --> AX
     
-    %% Τώρα οι συνδέσεις
-    U --> H
-    P --> H
-    Y --> H
-    Z --> H
-    AF --> H
-    AR --> J
+    %% Συνδέσεις προς το H (που είναι έξω από τα subgraphs)
+    U --> H2[Continue Processing]
+    P --> H2
+    Y --> H2
+    Z --> H2
+    AF --> H2
     
-    %% Grouping με dotted lines για να δείχνει subgraphs
-    subgraph group1 [HTTP Request Handling]
+    AR --> J2[Receive via HTTP]
+    J2 --> M
+    
+    H2 --> H
+    
+    %% Visual grouping χωρίς να σπάει το flow
+    subgraph HTTP_Request_Handling [HTTP Request Handling]
         J
         M
         N
@@ -463,7 +467,7 @@ flowchart TD
         AF
     end
     
-    subgraph group2 [Background Processing]
+    subgraph Background_Processing [Background Processing]
         AG
         AH
         AI
@@ -478,7 +482,7 @@ flowchart TD
         AR
     end
     
-    subgraph group3 [Monitoring Activities]
+    subgraph Monitoring_Activities [Monitoring Activities]
         AS
         AT
         AU
@@ -495,10 +499,12 @@ flowchart TD
     classDef startEnd fill:#ffcccc,stroke:#ff0000,stroke-width:2px
     classDef decision fill:#ffffcc,stroke:#ffcc00,stroke-width:2px
     classDef process fill:#ccffcc,stroke:#00cc00,stroke-width:2px
+    classDef subgraph fill:#f9f9f9,stroke:#666,stroke-dasharray: 5 5
     
     class A startEnd
     class C,I,N,S,W,AI,AO,AU,BA decision
-    class B,D,E,F,G,H,J,K,L,M,O,P,Q,R,T,U,V,X,Y,Z,AA,AB,AC,AD,AE,AF,AG,AH,AJ,AK,AL,AM,AN,AP,AQ,AR,AS,AT,AV,AW,AX,AY,AZ,BB process   
+    class B,D,E,F,G,H,H2,J,J2,M,O,P,Q,R,T,U,K,V,X,Y,Z,L,AA,AB,AC,AD,AE,AF,AG,AH,AJ,AK,AL,AM,AN,AP,AQ,AR,AS,AT,AV,AW,AX,AY,AZ,BB process
+    class HTTP_Request_Handling,Background_Processing,Monitoring_Activities subgraph   
 ```
 
 
