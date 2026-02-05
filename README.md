@@ -367,8 +367,10 @@ flowchart TD
     F --> G[Start Flask Server]
     G --> H[Listen for Requests]
     
-    subgraph HTTP_Request_Handling
-        H --> I{Request Type?}
+    %% Ορισμός subgraph ως ξεχωριστό flowchart
+    subgraph HTTP_Request_Handling [HTTP Request Handling]
+        direction TB
+        H1[Listen for Requests] --> I{Request Type?}
         I -->|Telemetry| J[Receive Telemetry Data]
         I -->|API Call| K[Authenticate Request]
         I -->|Security Scan| L[Queue Scan Task]
@@ -399,7 +401,8 @@ flowchart TD
         AE --> AF[Create Alerts if Vulnerabilities]
     end
     
-    subgraph Background_Processing
+    subgraph Background_Processing [Background Processing]
+        direction TB
         AG[Start Celery Worker] --> AH[Monitor Task Queue]
         AH --> AI{Task Available?}
         AI -->|Yes| AJ[Execute Task]
@@ -412,43 +415,7 @@ flowchart TD
         AN --> AO{Message Received?}
         AO -->|Yes| AP[Process MQTT Message]
         AO -->|No| AN
-        AP --> AQ[Convert to Telemetry]
-        AQ --> AR[Forward to HTTP endpoint]
-    end
-    
-    subgraph Monitoring_Activities
-        AS[Health Check Scheduler] --> AT[Check System Health]
-        AT --> AU{All Systems Healthy?}
-        AU -->|Yes| AV[Log Status]
-        AU -->|No| AW[Send Alert]
-        AV --> AS
-        AW --> AS
-        
-        AX[Performance Monitor] --> AY[Collect Metrics]
-        AY --> AZ[Analyze Trends]
-        AZ --> BA{Performance Degradation?}
-        BA -->|Yes| BB[Trigger Auto-scaling]
-        BA -->|No| AX
-        BB --> AX
-    end
-    
-    U --> H
-    P --> H
-    Y --> H
-    Z --> H
-    AF --> H
-    AR --> J
-    
-    %% Styling
-    classDef startEnd fill:#ffcccc,stroke:#ff0000,stroke-width:2px
-    classDef decision fill:#ffffcc,stroke:#ffcc00,stroke-width:2px
-    classDef process fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    classDef subgraph fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    
-    class A startEnd
-    class C,I,N,S,W,AI,AO,AU,BA decision
-    class B,D,E,F,G,J,K,L,M,O,P,Q,R,T,U,V,X,Y,Z,AA,AB,AC,AD,AE,AF,AG,AH,AJ,AK,AL,AM,AN,AP,AQ,AR,AS,AT,AV,AW,AX,AY,AZ,BB process
-    class HTTP_Request_Handling,Background_Processing,Monitoring_Activities subgraph
+        AP --> AQ[Convert to Telemetry]     
 ```
 
 
