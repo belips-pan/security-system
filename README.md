@@ -117,7 +117,7 @@ graph TB
     class API_GW,Flask_App,Web_Server,Business_Logic,Auth_Module,API_Routes backend
     class MQTT_Broker,Redis_Broker,Kafka_Broker,Celery_Queue broker
     class PostgreSQL,Redis_Cache,File_System,Docker_Images storage
-
+'''
 
 ### Class Diagram των Κύριων Κλάσεων
 
@@ -351,6 +351,8 @@ classDiagram
     
     ConfigurationManager --> FlaskApplication : configures
     LoggingService --> FlaskApplication : logs
+'''
+
 
 ### Activity Diagram για Telemetry Processing
 
@@ -447,6 +449,8 @@ flowchart TD
     class C,I,N,S,W,AI,AO,AU,BA decision
     class B,D,E,F,G,J,K,L,M,O,P,Q,R,T,U,V,X,Y,Z,AA,AB,AC,AD,AE,AF,AG,AH,AJ,AK,AL,AM,AN,AP,AQ,AR,AS,AT,AV,AW,AX,AY,AZ,BB process
     class HTTP_Request_Handling,Background_Processing,Monitoring_Activities subgraph
+'''
+
 
 ### Use Case Diagram των Χρηστών
 
@@ -559,6 +563,8 @@ graph TB
     class UC1,UC2,UC3,UC4,UC5,UC6,UC7,UC8,UC9,UC10,UC11,UC12,UC13,UC14,UC15,UC16,UC17,UC18,UC19,UC20 usecase
     class UC21,UC22 extend
     class UC23,UC24,UC25,UC26 include
+'''
+
 
 ### Sequence Diagram για Telemetry Collection
 
@@ -623,7 +629,7 @@ sequenceDiagram
     Celery->>Celery: Aggregate telemetry data<br/>(hourly/daily aggregates)
     Celery->>DB: Store aggregates for reporting
     Celery->>Celery: Cleanup old cached data
-
+'''
 
 ### Sequence Diagram για Security Scanning Sequence
 
@@ -698,6 +704,7 @@ sequenceDiagram
         Frontend->>Frontend: Format results for display<br/>(vulnerability list, severity chart)
         Frontend-->>Analyst: Display scan report<br/>(with remediation recommendations)
     end
+'''
 
 
 ### Sequence Diagram για System Startup Sequence
@@ -773,7 +780,7 @@ sequenceDiagram
     Flower-->>Docker: Monitoring ready<br/>(port 5555)
     
     Note right of Docker: System fully operational
-
+'''
 
 
 ## 🚀 Γρήγορη Εκκίνηση
