@@ -369,9 +369,10 @@ flowchart TD
     
     H --> I{Request Type?}
     
+    %% === HTTP REQUEST HANDLING ===
     I -->|Telemetry| J[Receive Telemetry Data]
     J --> M[Validate API Key]
-    M --> N{Valid?}
+    M --> N{Valid API Key?}
     N -->|Yes| O[Process Telemetry]
     N -->|No| P[Return 401 Unauthorized]
     
@@ -397,7 +398,7 @@ flowchart TD
     AD --> AE[Store Results]
     AE --> AF[Create Alerts if Vulnerabilities]
     
-    %% Background Processing
+    %% === BACKGROUND PROCESSING ===
     AG[Start Celery Worker] --> AH[Monitor Task Queue]
     AH --> AI{Task Available?}
     AI -->|Yes| AJ[Execute Task]
@@ -413,7 +414,7 @@ flowchart TD
     AP --> AQ[Convert to Telemetry]
     AQ --> AR[Forward to HTTP endpoint]
     
-    %% Monitoring Activities
+    %% === MONITORING ACTIVITIES ===
     AS[Health Check Scheduler] --> AT[Check System Health]
     AT --> AU{All Systems Healthy?}
     AU -->|Yes| AV[Log Status]
@@ -428,83 +429,29 @@ flowchart TD
     BA -->|No| AX
     BB --> AX
     
-    %% Συνδέσεις προς το H (που είναι έξω από τα subgraphs)
-    U --> H2[Continue Processing]
-    P --> H2
-    Y --> H2
-    Z --> H2
-    AF --> H2
+    %% === RETURN CONNECTIONS ===
+    U --> H
+    P --> H
+    Y --> H
+    Z --> H
+    AF --> H
+    AR --> J
     
-    AR --> J2[Receive via HTTP]
-    J2 --> M
-    
-    H2 --> H
-    
-    %% Visual grouping χωρίς να σπάει το flow
-    subgraph HTTP_Request_Handling [HTTP Request Handling]
-        J
-        M
-        N
-        O
-        P
-        Q
-        R
-        S
-        T
-        U
-        K
-        V
-        W
-        X
-        Y
-        Z
-        L
-        AA
-        AB
-        AC
-        AD
-        AE
-        AF
-    end
-    
-    subgraph Background_Processing [Background Processing]
-        AG
-        AH
-        AI
-        AJ
-        AK
-        AL
-        AM
-        AN
-        AO
-        AP
-        AQ
-        AR
-    end
-    
-    subgraph Monitoring_Activities [Monitoring Activities]
-        AS
-        AT
-        AU
-        AV
-        AW
-        AX
-        AY
-        AZ
-        BA
-        BB
-    end
-    
-    %% Styling
+    %% Styling - ΚΑΝΕΝΑ subgraph στο classDef!
     classDef startEnd fill:#ffcccc,stroke:#ff0000,stroke-width:2px
     classDef decision fill:#ffffcc,stroke:#ffcc00,stroke-width:2px
     classDef process fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    classDef subgraph fill:#f9f9f9,stroke:#666,stroke-dasharray: 5 5
+    classDef area1 fill:#e3f2fd,stroke:#1565c0
+    classDef area2 fill:#f3e5f5,stroke:#7b1fa2
+    classDef area3 fill:#e8f5e8,stroke:#2e7d32
+    classDef area4 fill:#fff3e0,stroke:#f57c00
     
     class A startEnd
     class C,I,N,S,W,AI,AO,AU,BA decision
-    class B,D,E,F,G,H,H2,J,J2,M,O,P,Q,R,T,U,K,V,X,Y,Z,L,AA,AB,AC,AD,AE,AF,AG,AH,AJ,AK,AL,AM,AN,AP,AQ,AR,AS,AT,AV,AW,AX,AY,AZ,BB process
-    class HTTP_Request_Handling,Background_Processing,Monitoring_Activities subgraph   
+    class B,D,E,F,G,H process
+    class J,M,O,P,Q,R,T,U,K,V,X,Y,Z,L,AA,AB,AC,AD,AE,AF area2
+    class AG,AH,AJ,AK,AL,AM,AN,AP,AQ,AR area3
+    class AS,AT,AV,AW,AX,AY,AZ,BB area4  
 ```
 
 
