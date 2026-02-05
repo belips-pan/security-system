@@ -893,7 +893,7 @@ docker-compose up -d postgres redis backend
 | **Redis** | 16379 | Cache & Message Broker | redis-cli -p 16379 ping |
 | **Kafka** | 19093 | Event Streaming | localhost:19093 |
 | **MQTT Broker** | 1883 | IoT Messaging | mosquitto_sub -h localhost -t test |
-| **Flower** | 15555 | Celery Monitoring | <http://localhost:15555> (admin:password) |
+| **Flower** | 15556 | Celery Monitoring | <http://localhost:15556> (admin:password) |
 
 ## 📊 Πρότυπο Δικτύου
 
