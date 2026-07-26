@@ -1,4 +1,0 @@
-FROM python:3.9-slim
-RUN pip install --no-cache-dir flower==2.0.1
-EXPOSE 5555
-CMD ["python", "-m", "flower", "--broker=redis://redis:6379/0", "--port=5555", "--basic_auth=admin:password"]

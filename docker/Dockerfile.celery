@@ -1,11 +1,13 @@
 # docker/Dockerfile.celery
 FROM python:3.9-slim
 
+SHELL ["/bin/bash", "-c"]
+
 WORKDIR /app
 
-# 1. DNS fix για build time
-RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
-    echo "nameserver 1.1.1.1" >> /etc/resolv.conf
+# 1. DNS fix για build time (best-effort, /etc/resolv.conf may be read-only under BuildKit)
+RUN (echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
+    echo "nameserver 1.1.1.1" >> /etc/resolv.conf) || true
 
 # 2. System packages
 RUN apt-get update && apt-get install -y \
@@ -36,6 +38,7 @@ RUN for i in {1..3}; do \
 RUN pip install docker
 
 # 7. Nuclei
+ARG WORKER_TYPE=scanner
 RUN if [ "$WORKER_TYPE" = "scanner" ]; then \
     apt-get update && apt-get install -y wget unzip && \
     wget https://github.com/projectdiscovery/nuclei/releases/download/v3.2.8/nuclei_3.2.8_linux_amd64.zip && \
@@ -70,7 +73,7 @@ RUN echo '#!/bin/sh' > /entrypoint.sh && \
 
 # 14. Create healthcheck script
 RUN echo '#!/bin/sh' > /healthcheck.sh && \
-    echo 'celery -A src.backend.celery_tasks inspect ping 2>/dev/null | grep -q "ok" || exit 1' >> /healthcheck.sh && \
+    echo 'celery -A celery_tasks inspect ping 2>/dev/null | grep -q "ok" || exit 1' >> /healthcheck.sh && \
     chmod +x /healthcheck.sh
 
 # 15. Set entrypoint

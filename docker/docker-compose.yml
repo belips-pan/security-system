@@ -1,5 +1,4 @@
 # Backend VM1
-version: '3.8'
 
 services:
   scanner-preload:
@@ -11,10 +10,7 @@ services:
       
       # Pull nmap image
       docker pull instrumentisto/nmap:latest || echo '⚠️ Failed to pull nmap'
-      
-      # Create nmap alias (if used by the code)
-      docker tag instrumentisto/nmap instrumentisto/mmap 2>/dev/null || true
-      
+
       # Pull nuclei image
       docker pull projectdiscovery/nuclei:latest || echo '⚠️ Failed to pull nuclei'
       
@@ -32,7 +28,7 @@ services:
     environment:
       POSTGRES_DB: security_db
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "15433:5432"
     volumes:
@@ -47,6 +43,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    mem_limit: 512m
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
@@ -63,6 +60,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    mem_limit: 512m
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
@@ -91,6 +89,7 @@ services:
       timeout: 10s
       retries: 10
       start_period: 60s
+    mem_limit: 768m
 
   mosquitto:
     image: eclipse-mosquitto:2.0
@@ -126,18 +125,24 @@ services:
     ports:
       - "15000:5000"
     environment:
-      - DATABASE_URL=postgresql://admin:password@postgres:5432/security_db
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/security_db
       - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=your-secret-key-change-in-production
+      - SECRET_KEY=${SECRET_KEY}
       - FLASK_ENV=production
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ../src/backend:/app/src/backend
       - backend_logs:/app/logs
+      # Docker socket + root are required so this service can launch scanner
+      # containers (nmap/nuclei) on demand. This grants effectively full host
+      # access from inside the container - do not add this pattern elsewhere
+      # without a compelling reason. Hardening option: front the socket with
+      # a read-only proxy (e.g. tecnativa/docker-socket-proxy) scoped to just
+      # the container-create/start/logs endpoints this service actually needs.
       - /var/run/docker.sock:/var/run/docker.sock:rw
     user: "0:0"
     networks:
@@ -150,6 +155,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    mem_limit: 1g
 
   celery-worker:
     build:
@@ -158,15 +164,17 @@ services:
     container_name: docker_celery-worker_1
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://admin:password@postgres:5432/security_db
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/security_db
       - DOCKER_HOST=unix:///var/run/docker.sock
     depends_on:
       redis:
         condition: service_healthy
       postgres:
-        condition: service_started
+        condition: service_healthy
     user: "0:0"
     volumes:
+      # See backend service above for why docker.sock + root are needed here
+      # (this is the worker that actually runs nmap/nuclei scan containers).
       - /var/run/docker.sock:/var/run/docker.sock
       - ../src/backend:/app/src/backend
     command: ["celery", "-A", "celery_tasks", "worker", "-Q", "scans,celery", "--loglevel=info"]
@@ -180,6 +188,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    mem_limit: 1g
 
   celery-beat:
     build:
@@ -188,7 +197,7 @@ services:
     container_name: docker_celery-beat_1
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://admin:password@postgres:5432/security_db
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/security_db
       - PYTHONPATH=/app:/app/src/backend
     # Σημαντικό: Το entrypoint.sh θα τρέξει το "celery -A src.backend.celery_tasks beat"
     command: ["celery", "-A", "celery_tasks", "beat", "--loglevel=info", "--pidfile=/tmp/celerybeat.pid"]
@@ -196,13 +205,15 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ../src/backend:/app/src/backend
-    command: ["beat", "--loglevel=info", "--pidfile=/tmp/celerybeat.pid"]
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     networks:
       - monitoring-network
     restart: unless-stopped
+    mem_limit: 512m
 
 #  rabbitmq:
 #    image: rabbitmq:3-management
@@ -214,16 +225,19 @@ services:
     image: mher/flower:latest
     container_name: docker_flower_fixed
     ports:
-      - "15556:5555"
+      # Matches the port referenced by start.sh/start-fast.sh/check.sh
+      - "15555:5555"
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - FLOWER_BROKER=redis://redis:6379/0
       - FLOWER_ADDRESS=0.0.0.0
       - FLOWER_PORT=5555
+      - FLOWER_BASIC_AUTH=admin:${FLOWER_PASSWORD}
     depends_on:
       - redis
     networks:
       - monitoring-network
+    mem_limit: 256m
 
 volumes:
   postgres_data:
