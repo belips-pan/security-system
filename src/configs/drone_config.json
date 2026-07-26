@@ -1,7 +1,10 @@
 {
   "agent_id": "DRONE-01",
   "agent_type": "drone_agent",
-  "api_key": "DWVkXiDJ_IIbdkxRTSIKjAhe4bFUuvhFgiMfWhaII",
+  "_api_key_note": "Placeholder only. Real deployments must provision a unique, randomly generated API key per device and inject it as a secret, not commit it here.",
+  "api_key": "CHANGE_ME_GENERATE_PER_DEVICE",
+  "mqtt_username": "drone_agent",
+  "mqtt_password": "CHANGE_ME",
   "location": "Outdoor_Yard_Zone_B",
   "telemetry_frequency_seconds": 10,
   "metrics": {

@@ -1,7 +1,10 @@
 {
   "agent_id": "Robot_Arm_001",
   "agent_type": "robot_agent",
-  "api_key": "DVvkafojenj6091wusBSJbL02gIawkIFt2oS8rJIF4U",
+  "_api_key_note": "Placeholder only. Real deployments must provision a unique, randomly generated API key per device and inject it as a secret, not commit it here.",
+  "api_key": "CHANGE_ME_GENERATE_PER_DEVICE",
+  "mqtt_username": "robot_agent",
+  "mqtt_password": "CHANGE_ME",
   "location": "WMS_Zone_A_Picking",
   "telemetry_frequency_seconds": 10,
   "metrics": {
