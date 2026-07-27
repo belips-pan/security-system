@@ -202,11 +202,13 @@ def require_csrf(f):
 
 
 def require_scan_access(f):
-    """Only human User accounts (via a logged-in session or a User API key)
-    may initiate scans or read platform-wide scan history/stats. Agent-type
-    API keys (camera/drone/plc/robot/iot/security_scanner) are for
-    submitting their own telemetry and must not be able to launch scans or
-    read other assets' scan data.
+    """Human User accounts (via a logged-in session or a User API key) and
+    the container_scanner agent (monsys's frontend authenticates to this API
+    with that agent's key to launch scans on behalf of its own users - it IS
+    the scanning system's identity, not a telemetry-only sensor) may
+    initiate scans or read platform-wide scan history/stats. Every other
+    agent type (camera/drone/plc/robot/iot) is telemetry-only and must not
+    be able to launch scans or read other assets' scan data.
     """
     def decorated(*args, **kwargs):
         if session.get('authenticated'):
@@ -224,6 +226,10 @@ def require_scan_access(f):
 
         agent = Agent.query.filter_by(api_key=hash_api_key(api_key)).first()
         if agent:
+            if agent.agent_type == 'security_scanner':
+                request.agent_type = agent.agent_type
+                request.agent_id = agent.agent_id
+                return f(*args, **kwargs)
             return jsonify({
                 "error": "Forbidden",
                 "details": "Agent credentials cannot access scan management endpoints"
