@@ -4,20 +4,20 @@
 echo "🚀 ΓΡΗΓΟΡΟ Startup..."
 
 # 1. Start βασικά services ΜΟΝΟ
-docker-compose up -d postgres redis zookeeper mosquitto
+docker compose up -d postgres redis zookeeper mosquitto
 
 # 2. Περιμένετε ΛΙΓΟ για postgres
 echo "⏳ Περιμένω Postgres..."
 sleep 5
 
 # 3. Start backend
-docker-compose up -d backend
+docker compose up -d backend
 
 # 4. Start τα υπόλοιπα ΠΑΡΑΛΛΗΛΑ
-docker-compose up -d kafka celery-worker celery-beat flower
+docker compose up -d kafka celery-worker celery-beat flower
 
 echo "✅ Όλα τρέχουν! Έλεγχος:"
-docker-compose ps --format "table {{.Name}}\t{{.State}}\t{{.Status}}"
+docker compose ps --format "table {{.Name}}\t{{.State}}\t{{.Status}}"
 
 echo ""
 echo "🌐 URLs:"

@@ -63,8 +63,12 @@ except ImportError as e:
     CELERY_AVAILABLE = False
     celery_app = None
 
-# Flower monitoring configuration
-FLOWER_URL = os.getenv('FLOWER_URL', 'http://localhost:15555')
+# Flower monitoring configuration. "localhost" would mean this container, not
+# the flower container - default to the internal service DNS name/port
+# instead, so it resolves within the Docker network without needing
+# FLOWER_URL set explicitly. FLOWER_URL below is still respected if provided
+# (e.g. to point at a Flower instance reachable via a different host).
+FLOWER_URL = os.getenv('FLOWER_URL', 'http://flower:5555')
 FLOWER_USERNAME = os.getenv('FLOWER_USERNAME', 'admin')
 FLOWER_PASSWORD = os.getenv('FLOWER_PASSWORD', 'password')
 

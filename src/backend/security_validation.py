@@ -15,7 +15,7 @@ import re
 # Any of these characters showing up in a target or option string is treated
 # as an attempted injection, regardless of which allow-list regex it might
 # otherwise satisfy.
-_SHELL_METACHAR_RE = re.compile(r'[;&|`$(){}<>\n\r\'"\]')
+_SHELL_METACHAR_RE = re.compile(r"""[];&|`$(){}<>\n\r'"]""")
 
 _IP_RE = re.compile(r'^(\d{1,3}\.){3}\d{1,3}$')
 _CIDR_RE = re.compile(r'^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$')

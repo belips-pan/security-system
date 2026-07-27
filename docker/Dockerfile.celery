@@ -72,8 +72,11 @@ RUN echo '#!/bin/sh' > /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
 # 14. Create healthcheck script
+# grep -i: celery's actual output is "OK" (uppercase) - a case-sensitive
+# match here means this always fails and reports unhealthy even when the
+# worker is genuinely fine.
 RUN echo '#!/bin/sh' > /healthcheck.sh && \
-    echo 'celery -A celery_tasks inspect ping 2>/dev/null | grep -q "ok" || exit 1' >> /healthcheck.sh && \
+    echo 'celery -A celery_tasks inspect ping 2>/dev/null | grep -qi "ok" || exit 1' >> /healthcheck.sh && \
     chmod +x /healthcheck.sh
 
 # 15. Set entrypoint

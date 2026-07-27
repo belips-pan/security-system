@@ -43,3 +43,14 @@ topic write security/agents/robot/#
 user edge_gateway
 topic read security/agents/#
 topic write security/gateway/#
+
+# --- monsys: a separate deployment (frontend + its own Celery workers) that
+#     uses this broker purely as shared infrastructure between its own
+#     processes - celery-worker-siem/celery-worker-scanner publish scan
+#     results/alerts/telemetry under monitoring/#, and the monsys frontend
+#     subscribes to the same prefix to drive its dashboard. Unrelated to the
+#     security/# namespace used by the OT/IoT agents above. Password comes
+#     from MOSQUITTO_MONSYS_PASSWORD in docker/.env - must be set to the same
+#     value as MQTT_PASSWORD in monsys/.env.
+user monsys
+topic readwrite monitoring/#

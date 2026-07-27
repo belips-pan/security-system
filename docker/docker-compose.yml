@@ -1,5 +1,12 @@
 # Backend VM1
 
+# Explicit project name: without this, Compose defaults to the parent
+# directory's name ("docker") - identical to monsys's docker/docker-compose.yml,
+# since that also lives in a directory literally called "docker". Without this,
+# both stacks silently share one Compose project, and e.g. `docker compose down`
+# run from either directory can tear down the other stack's containers too.
+name: security-system
+
 services:
   scanner-preload:
     image: docker:latest
@@ -101,6 +108,9 @@ services:
       # iot_agent, plc_agent, robot_agent) - see docker/mosquitto.acl for
       # why type-level sharing is an acceptable tradeoff here
       - MOSQUITTO_AGENT_PASSWORD=${MOSQUITTO_AGENT_PASSWORD}
+      # monsys's shared "monsys" user (see docker/mosquitto.acl) - must match
+      # MQTT_PASSWORD in monsys/.env exactly.
+      - MOSQUITTO_MONSYS_PASSWORD=${MOSQUITTO_MONSYS_PASSWORD}
     ports:
       - "1883:1883"
       - "19002:9001"
@@ -118,6 +128,7 @@ services:
       for u in camera_agent drone_agent iot_agent plc_agent robot_agent; do
         mosquitto_passwd -b /mosquitto/data/passwd \"$$u\" \"$$MOSQUITTO_AGENT_PASSWORD\";
       done &&
+      mosquitto_passwd -b /mosquitto/data/passwd monsys \"$$MOSQUITTO_MONSYS_PASSWORD\" &&
       exec mosquitto -c /mosquitto/config/mosquitto.conf
       "
     networks:
@@ -192,6 +203,11 @@ services:
       - FLASK_ENV=production
       - DOCKER_HOST=tcp://docker-socket-proxy:2375
       - ADMIN_INITIAL_PASSWORD=${ADMIN_INITIAL_PASSWORD:-}
+      # Matches flower's own FLOWER_BASIC_AUTH below - without these, app.py's
+      # /health check falls back to the literal default password "password",
+      # which never matches the real generated FLOWER_PASSWORD.
+      - FLOWER_USERNAME=admin
+      - FLOWER_PASSWORD=${FLOWER_PASSWORD}
       # Shared with monsys (a separate deployment on another VM) - its
       # SCANNER_API_KEY/BACKEND_API_KEY/SCANNER_BACKEND_API_KEY must be set
       # to this exact same value. See docker/.env.example.
@@ -204,7 +220,11 @@ services:
       docker-socket-proxy:
         condition: service_started
     volumes:
-      - ../src/backend:/app/src/backend
+      # Dockerfile.backend does `WORKDIR /app` + `COPY src/backend/ .`, so
+      # gunicorn actually imports app.py from /app, not /app/src/backend -
+      # the previous mount path here was silently a no-op (source edits
+      # never reached the running process without a full image rebuild).
+      - ../src/backend:/app
       - backend_logs:/app/logs
       # Docker access now goes through docker-socket-proxy (see above)
       # instead of a raw rw bind-mount of the host socket as root. This
