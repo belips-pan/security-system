@@ -192,6 +192,10 @@ services:
       - FLASK_ENV=production
       - DOCKER_HOST=tcp://docker-socket-proxy:2375
       - ADMIN_INITIAL_PASSWORD=${ADMIN_INITIAL_PASSWORD:-}
+      # Shared with monsys (a separate deployment on another VM) - its
+      # SCANNER_API_KEY/BACKEND_API_KEY/SCANNER_BACKEND_API_KEY must be set
+      # to this exact same value. See docker/.env.example.
+      - CONTAINER_SCANNER_API_KEY=${CONTAINER_SCANNER_API_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy

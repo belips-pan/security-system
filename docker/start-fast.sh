@@ -22,4 +22,15 @@ docker-compose ps --format "table {{.Name}}\t{{.State}}\t{{.Status}}"
 echo ""
 echo "🌐 URLs:"
 echo "Backend: http://localhost:15000"
-echo "Flower:  http://localhost:15555/flower (admin:password)"
+echo "Flower:  http://localhost:15555 (admin:\$FLOWER_PASSWORD, see .env)"
+
+# monsys (a separate deployment on another VM) needs this same value as its
+# SCANNER_API_KEY/BACKEND_API_KEY/SCANNER_BACKEND_API_KEY - see .env.example.
+if [ -f .env ] && grep -q '^CONTAINER_SCANNER_API_KEY=.\+' .env; then
+    echo "Reminder: CONTAINER_SCANNER_API_KEY (see docker/.env) must also be set as"
+    echo "SCANNER_API_KEY in monsys's .env on the frontend VM."
+else
+    echo "WARNING: CONTAINER_SCANNER_API_KEY is not set in .env - set it to share the"
+    echo "container_scanner agent's key with monsys automatically instead of copying"
+    echo "a randomly generated key out of backend startup logs by hand."
+fi

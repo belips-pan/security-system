@@ -325,11 +325,25 @@ def init_database():
                         'agent_id': 'container_scanner',
                         'agent_type': 'security_scanner',
                         'location': 'Security VM',
+                        # Unlike every other agent here, this key is also
+                        # needed by monsys - a *separate* deployment on
+                        # another VM (see monsys/.env's SCANNER_API_KEY) -
+                        # which can't read it from these logs. Rather than
+                        # relying on copy-pasting a randomly generated value
+                        # out of the backend's startup logs into monsys's
+                        # .env by hand, let the operator provision ONE value
+                        # in both places via CONTAINER_SCANNER_API_KEY. If
+                        # unset, this still falls back to the same
+                        # generate-once-and-print behavior as every other
+                        # agent - it just can't be "transparently" shared
+                        # with monsys in that case.
+                        'api_key_override': os.environ.get('CONTAINER_SCANNER_API_KEY'),
                     }
                 ]
 
                 for agent_data in agents_seed:
                     try:
+                        override_key = agent_data.get('api_key_override')
                         agent = Agent.query.filter_by(agent_id=agent_data['agent_id']).first()
                         if not agent:
                             agent = Agent(
@@ -337,19 +351,25 @@ def init_database():
                                 agent_type=agent_data['agent_type'],
                                 location=agent_data['location'],
                             )
-                            # generate_api_key() stores only the key's hash
-                            # on the model and returns the raw key.
-                            raw_agent_key = agent.generate_api_key()
-                            db.session.add(agent)
-                            db.session.commit()
-                            print(f"✅ Created agent: {agent_data['agent_id']}")
-                            print(f"🔑 {agent_data['agent_id']} API Key (shown once, store it now): {raw_agent_key}")
+                            if override_key:
+                                # Operator-provisioned value (shared with
+                                # monsys) - store only its hash, same as
+                                # generate_api_key() would.
+                                agent.api_key = hash_api_key(override_key)
+                                db.session.add(agent)
+                                db.session.commit()
+                                print(f"✅ Created agent: {agent_data['agent_id']}")
+                                print(f"🔑 {agent_data['agent_id']} API Key set from CONTAINER_SCANNER_API_KEY (shared with monsys)")
+                            else:
+                                # generate_api_key() stores only the key's
+                                # hash on the model and returns the raw key.
+                                raw_agent_key = agent.generate_api_key()
+                                db.session.add(agent)
+                                db.session.commit()
+                                print(f"✅ Created agent: {agent_data['agent_id']}")
+                                print(f"🔑 {agent_data['agent_id']} API Key (shown once, store it now): {raw_agent_key}")
                         else:
-                            # Keep agent_type/location in sync. Never overwrite
-                            # an existing api_key - but if the row has no key
-                            # yet (e.g. it was pre-created by a placeholder
-                            # INSERT in unified_schema.sql with no api_key),
-                            # backfill one now and print it once.
+                            # Keep agent_type/location in sync.
                             changed = False
                             if agent.agent_type != agent_data['agent_type']:
                                 agent.agent_type = agent_data['agent_type']
@@ -357,7 +377,24 @@ def init_database():
                             if agent.location != agent_data['location']:
                                 agent.location = agent_data['location']
                                 changed = True
-                            if not agent.api_key:
+                            if override_key:
+                                # An explicit shared value always wins, so
+                                # rotating CONTAINER_SCANNER_API_KEY and
+                                # restarting keeps this agent's key in sync
+                                # with monsys without touching the database
+                                # by hand. (Every other agent's api_key is
+                                # never overwritten once set - see the
+                                # backfill-only branch below.)
+                                new_hash = hash_api_key(override_key)
+                                if agent.api_key != new_hash:
+                                    agent.api_key = new_hash
+                                    changed = True
+                                    print(f"🔑 {agent_data['agent_id']} API Key synced from CONTAINER_SCANNER_API_KEY (shared with monsys)")
+                            elif not agent.api_key:
+                                # No override configured and the row has no
+                                # key yet (e.g. it was pre-created by a
+                                # placeholder INSERT in unified_schema.sql) -
+                                # backfill a random one and print it once.
                                 raw_agent_key = agent.generate_api_key()
                                 changed = True
                                 print(f"🔑 {agent_data['agent_id']} API Key (backfilled, shown once, store it now): {raw_agent_key}")
