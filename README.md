@@ -841,48 +841,66 @@ sequenceDiagram
 
 ## 🚀 Γρήγορη Εκκίνηση
 
+Αυτό είναι το **backend** (API, βάση δεδομένων, MQTT broker, IoT/OT agents)
+ενός συστήματος δύο repos. Το άλλο μισό, το
+[monsys](https://github.com/belips-pan/monsys), είναι το frontend/scanner
+που καταναλώνει αυτό το API.
+
+**Ξεκινήστε πρώτα το security-system, μετά το monsys** (αν χρειάζεστε και
+τα δύο) - το monsys συνδέεται απευθείας στο Redis και το MQTT broker αυτού
+του repo, όχι μόνο στο HTTP API του, οπότε πρέπει να είναι ήδη υγιές πριν
+ξεκινήσετε το monsys.
+
 **Προαπαιτούμενα**
 
-- Docker & Docker Compose
-- Python 3.9+
+- Docker Desktop (ή Docker Engine + το `docker compose` v2 plugin)
 - 8GB RAM minimum
-- Ubuntu 20.04+ (προτείνεται)
 
-**Εγκατάσταση σε 3 Βήματα**
+**Εγκατάσταση**
 
-bash
-
-_\# 1. Κλώνος αποθήκης_
-
-git clone <https://github.com/belips-pan/security-system.git>
-
+```bash
+# 1. Κλώνος αποθήκης
+git clone https://github.com/belips-pan/security-system.git
 cd security-system
 
-_\# 2. Δημιουργία αρχείου environment_
-
-cp .env.example .env
-
-_\# Επεξεργασία του .env με τις τιμές σας_
-
-_\# 3. Εκκίνηση συστήματος_
-
+# 2. Δημιουργία αρχείου environment (βρίσκεται στο docker/, όχι στη ρίζα)
 cd docker
+cp .env.example .env
+# Επεξεργασία του .env με τις τιμές σας (POSTGRES_PASSWORD, SECRET_KEY,
+# REDIS_PASSWORD, MOSQUITTO_PASSWORD, MOSQUITTO_AGENT_PASSWORD, κ.λπ. -
+# δείτε τα σχόλια μέσα στο .env.example για το πώς να τα παράγετε).
+#
+# Αν θα τρέξετε και το monsys, ορίστε ΚΑΙ τα CONTAINER_SCANNER_API_KEY και
+# MOSQUITTO_MONSYS_PASSWORD πριν το πρώτο startup - το backend
+# provisionάρει το container_scanner agent και τον χρήστη MQTT "monsys" από
+# αυτές τις τιμές, οπότε αν τις ορίσετε εκ των προτέρων, το monsys μπορεί
+# απλά να χρησιμοποιήσει τις ίδιες τιμές χωρίς copy-paste από τα logs.
 
+# 3. Εκκίνηση συστήματος (ακόμα μέσα στο docker/)
 chmod +x start-fast.sh
-
 ./start-fast.sh
+```
 
-**Εναλλακτική Εκκίνηση**
+Στο πρώτο startup, το backend τυπώνει μία φορά στα logs του (`docker
+compose logs backend`) τον κωδικό του admin χρήστη (ή χρησιμοποιεί το
+`ADMIN_INITIAL_PASSWORD` αν το έχετε ορίσει) και το API key κάθε agent -
+κρατήστε τα τότε, δεν εμφανίζονται ξανά.
 
-bash
+Επιβεβαίωση ότι το σύστημα είναι υγιές:
+```bash
+curl http://localhost:15000/health
+# {"database":"healthy","flower_monitoring":"healthy","status":"healthy",...}
+```
 
-_\# Πλήρης εκκίνηση (build από την αρχή)_
+**Εναλλακτική Εκκίνηση** (και τα δύο τρέχουν επίσης μέσα από `docker/`)
 
-./docker/start.sh
+```bash
+# Πλήρης εκκίνηση (build από την αρχή)
+./start.sh
 
-_\# Μόνο βασικές υπηρεσίες_
-
-docker-compose up -d postgres redis backend
+# Μόνο βασικές υπηρεσίες
+docker compose up -d postgres redis backend
+```
 
 ## 🐳 Docker Services
 
@@ -890,10 +908,10 @@ docker-compose up -d postgres redis backend
 | --- | --- | --- | --- |
 | **Backend API** | 15000 | Flask REST API | <http://localhost:15000/health> |
 | **PostgreSQL** | 15433 | Database | localhost:15433 |
-| **Redis** | 16379 | Cache & Message Broker | redis-cli -p 16379 ping |
+| **Redis** | 16379 | Cache & Message Broker | redis-cli -p 16379 -a $REDIS_PASSWORD ping |
 | **Kafka** | 19093 | Event Streaming | localhost:19093 |
-| **MQTT Broker** | 1883 | IoT Messaging | mosquitto_sub -h localhost -t test |
-| **Flower** | 15556 | Celery Monitoring | <http://localhost:15556> (admin:password) |
+| **MQTT Broker** | 1883 | IoT Messaging | mosquitto_sub -h localhost -t '$SYS/#' -u <user> -P <pass> |
+| **Flower** | 15555 | Celery Monitoring | <http://localhost:15555> (admin:$FLOWER_PASSWORD) |
 
 ## 📊 Πρότυπο Δικτύου
 
