@@ -1,7 +1,11 @@
 {
   "agent_id": "raspberrypi-01",
+  "agent_type": "iot_agent",
   "version": "1.1",
-  "api_key": "wEMFje4up11GLvqINeMix4j_cJqUu7wLLMXYb15BFmY",
+  "_api_key_note": "Placeholder only. Real deployments must provision a unique, randomly generated API key per device and inject it as a secret, not commit it here.",
+  "api_key": "CHANGE_ME_GENERATE_PER_DEVICE",
+  "mqtt_username": "iot_agent",
+  "mqtt_password": "CHANGE_ME",
   "config_timestamp": "2025-09-01T10:00:00Z",
   "metrics": {
     "system_metrics": {

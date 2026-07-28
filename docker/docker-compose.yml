@@ -1,5 +1,11 @@
 # Backend VM1
-version: '3.8'
+
+# Explicit project name: without this, Compose defaults to the parent
+# directory's name ("docker") - identical to monsys's docker/docker-compose.yml,
+# since that also lives in a directory literally called "docker". Without this,
+# both stacks silently share one Compose project, and e.g. `docker compose down`
+# run from either directory can tear down the other stack's containers too.
+name: security-system
 
 services:
   scanner-preload:
@@ -8,16 +14,13 @@ services:
     command: >
       sh -c "
       echo '📦 Loading security scanner images...'
-      
+
       # Pull nmap image
       docker pull instrumentisto/nmap:latest || echo '⚠️ Failed to pull nmap'
-      
-      # Create nmap alias (if used by the code)
-      docker tag instrumentisto/nmap instrumentisto/mmap 2>/dev/null || true
-      
+
       # Pull nuclei image
       docker pull projectdiscovery/nuclei:latest || echo '⚠️ Failed to pull nuclei'
-      
+
       echo '✅ Scanner images loaded or already exist'
       "
     volumes:
@@ -32,7 +35,7 @@ services:
     environment:
       POSTGRES_DB: security_db
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "15433:5432"
     volumes:
@@ -47,6 +50,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    mem_limit: 512m
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
@@ -63,6 +67,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    mem_limit: 512m
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
@@ -91,15 +96,41 @@ services:
       timeout: 10s
       retries: 10
       start_period: 60s
+    mem_limit: 768m
 
   mosquitto:
     image: eclipse-mosquitto:2.0
     container_name: docker_mosquito_1
+    environment:
+      # edge_gateway's own credential
+      - MOSQUITTO_PASSWORD=${MOSQUITTO_PASSWORD}
+      # shared by all five agent-type users (camera_agent, drone_agent,
+      # iot_agent, plc_agent, robot_agent) - see docker/mosquitto.acl for
+      # why type-level sharing is an acceptable tradeoff here
+      - MOSQUITTO_AGENT_PASSWORD=${MOSQUITTO_AGENT_PASSWORD}
+      # monsys's shared "monsys" user (see docker/mosquitto.acl) - must match
+      # MQTT_PASSWORD in monsys/.env exactly.
+      - MOSQUITTO_MONSYS_PASSWORD=${MOSQUITTO_MONSYS_PASSWORD}
     ports:
       - "1883:1883"
       - "19002:9001"
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto.acl:/mosquitto/config/mosquitto.acl
+      - mosquitto_data:/mosquitto/data
+    # Generate/refresh the password file from env vars at container start
+    # (mosquitto_passwd ships in the eclipse-mosquitto image), then hand off
+    # to mosquitto itself. Usernames are fixed literals matching
+    # docker/mosquitto.acl - see mosquitto.conf for the auth/ACL directives.
+    command: >
+      sh -c "
+      mosquitto_passwd -b -c /mosquitto/data/passwd edge_gateway \"$$MOSQUITTO_PASSWORD\" &&
+      for u in camera_agent drone_agent iot_agent plc_agent robot_agent; do
+        mosquitto_passwd -b /mosquitto/data/passwd \"$$u\" \"$$MOSQUITTO_AGENT_PASSWORD\";
+      done &&
+      mosquitto_passwd -b /mosquitto/data/passwd monsys \"$$MOSQUITTO_MONSYS_PASSWORD\" &&
+      exec mosquitto -c /mosquitto/config/mosquitto.conf
+      "
     networks:
       - monitoring-network
     restart: unless-stopped
@@ -107,16 +138,56 @@ services:
   redis:
     image: redis:7-alpine
     container_name: docker_redis_1
+    # Auth required - see #1 in the hardening review: an unauthenticated
+    # Redis broker let anyone who could reach this port enqueue Celery scan
+    # tasks directly, bypassing require_api_key entirely.
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     ports:
       - "16379:6379"
     networks:
       - monitoring-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping | grep PONG"]
       interval: 5s
       timeout: 3s
       retries: 2
+
+  docker-socket-proxy:
+    # Fronts the host Docker socket with a read-only-mounted proxy scoped to
+    # only the endpoint groups the scanner actually needs (pulling/running/
+    # removing the nmap+nuclei containers). backend/celery-worker talk to
+    # this over plain TCP on the internal compose network instead of getting
+    # the raw socket bind-mounted - see backend/celery-worker below.
+    image: tecnativa/docker-socket-proxy:latest
+    container_name: docker_socket_proxy_1
+    environment:
+      - CONTAINERS=1
+      - IMAGES=1
+      - POST=1
+      - PING=1
+      - VERSION=1
+      - INFO=1
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - DISTRIBUTION=0
+      - EVENTS=0
+      - EXEC=0
+      - NETWORKS=0
+      - PLUGINS=0
+      - SERVICES=0
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=0
+      - VOLUMES=0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - monitoring-network
+    restart: unless-stopped
+    mem_limit: 128m
 
   backend:
     build:
@@ -126,20 +197,39 @@ services:
     ports:
       - "15000:5000"
     environment:
-      - DATABASE_URL=postgresql://admin:password@postgres:5432/security_db
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=your-secret-key-change-in-production
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/security_db
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - SECRET_KEY=${SECRET_KEY}
       - FLASK_ENV=production
+      - DOCKER_HOST=tcp://docker-socket-proxy:2375
+      - ADMIN_INITIAL_PASSWORD=${ADMIN_INITIAL_PASSWORD:-}
+      # Matches flower's own FLOWER_BASIC_AUTH below - without these, app.py's
+      # /health check falls back to the literal default password "password",
+      # which never matches the real generated FLOWER_PASSWORD.
+      - FLOWER_USERNAME=admin
+      - FLOWER_PASSWORD=${FLOWER_PASSWORD}
+      # Shared with monsys (a separate deployment on another VM) - its
+      # SCANNER_API_KEY/BACKEND_API_KEY/SCANNER_BACKEND_API_KEY must be set
+      # to this exact same value. See docker/.env.example.
+      - CONTAINER_SCANNER_API_KEY=${CONTAINER_SCANNER_API_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      docker-socket-proxy:
         condition: service_started
     volumes:
-      - ../src/backend:/app/src/backend
+      # Dockerfile.backend does `WORKDIR /app` + `COPY src/backend/ .`, so
+      # gunicorn actually imports app.py from /app, not /app/src/backend -
+      # the previous mount path here was silently a no-op (source edits
+      # never reached the running process without a full image rebuild).
+      - ../src/backend:/app
       - backend_logs:/app/logs
-      - /var/run/docker.sock:/var/run/docker.sock:rw
-    user: "0:0"
+      # Docker access now goes through docker-socket-proxy (see above)
+      # instead of a raw rw bind-mount of the host socket as root. This
+      # replaces the previous "mounts /var/run/docker.sock as root" setup;
+      # the container runs as the non-root user set in Dockerfile.backend.
     networks:
       - monitoring-network
     restart: unless-stopped
@@ -150,6 +240,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    mem_limit: 1g
 
   celery-worker:
     build:
@@ -157,17 +248,19 @@ services:
       dockerfile: docker/Dockerfile.celery
     container_name: docker_celery-worker_1
     environment:
-      - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://admin:password@postgres:5432/security_db
-      - DOCKER_HOST=unix:///var/run/docker.sock
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/security_db
+      - DOCKER_HOST=tcp://docker-socket-proxy:2375
     depends_on:
       redis:
         condition: service_healthy
       postgres:
+        condition: service_healthy
+      docker-socket-proxy:
         condition: service_started
-    user: "0:0"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      # Docker access now goes through docker-socket-proxy (see that service
+      # above) instead of a raw rw bind-mount of the host socket as root.
       - ../src/backend:/app/src/backend
     command: ["celery", "-A", "celery_tasks", "worker", "-Q", "scans,celery", "--loglevel=info"]
     working_dir: /app/src/backend
@@ -180,6 +273,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    mem_limit: 1g
 
   celery-beat:
     build:
@@ -187,22 +281,25 @@ services:
       dockerfile: docker/Dockerfile.celery
     container_name: docker_celery-beat_1
     environment:
-      - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://admin:password@postgres:5432/security_db
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/security_db
       - PYTHONPATH=/app:/app/src/backend
     # Σημαντικό: Το entrypoint.sh θα τρέξει το "celery -A src.backend.celery_tasks beat"
     command: ["celery", "-A", "celery_tasks", "beat", "--loglevel=info", "--pidfile=/tmp/celerybeat.pid"]
     working_dir: /app/src/backend
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      # beat only schedules periodic tasks (celery-worker executes them), so
+      # it never needs Docker access - no socket mount here.
       - ../src/backend:/app/src/backend
-    command: ["beat", "--loglevel=info", "--pidfile=/tmp/celerybeat.pid"]
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     networks:
       - monitoring-network
     restart: unless-stopped
+    mem_limit: 512m
 
 #  rabbitmq:
 #    image: rabbitmq:3-management
@@ -214,20 +311,24 @@ services:
     image: mher/flower:latest
     container_name: docker_flower_fixed
     ports:
-      - "15556:5555"
+      # Matches the port referenced by start.sh/start-fast.sh/check.sh
+      - "15555:5555"
     environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - FLOWER_BROKER=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - FLOWER_BROKER=redis://:${REDIS_PASSWORD}@redis:6379/0
       - FLOWER_ADDRESS=0.0.0.0
       - FLOWER_PORT=5555
+      - FLOWER_BASIC_AUTH=admin:${FLOWER_PASSWORD}
     depends_on:
       - redis
     networks:
       - monitoring-network
+    mem_limit: 256m
 
 volumes:
   postgres_data:
   backend_logs:
+  mosquitto_data:
 
 networks:
   monitoring-network:

@@ -1,0 +1,56 @@
+# Mosquitto ACL file
+#
+# Restricts each authenticated MQTT user to the minimum topic access it
+# actually needs. Referenced by docker/mosquitto.conf via `acl_file`.
+#
+# Usernames here are fixed (not operator-configurable) and must match
+# exactly what docker-compose.yml's mosquitto service generates into the
+# password file at container start - one user per agent TYPE, plus
+# "edge_gateway" for the gateway process. Passwords come from
+# MOSQUITTO_PASSWORD (edge_gateway) and MOSQUITTO_AGENT_PASSWORD (shared by
+# all five agent-type users) in docker/.env.
+#
+# NOTE: this scopes to agent TYPE, not physical device - any two PLC agents
+# would share the "plc_agent" identity and could therefore publish under
+# each other's device-level sub-topics (security/agents/plc/<other-device>/#).
+# If per-device isolation is required, switch to one MQTT user per physical
+# device (e.g. plc_PLC001, plc_PLC002) with the same `topic write
+# security/agents/plc/#` rule, and provision a distinct password per device
+# instead of the shared MOSQUITTO_AGENT_PASSWORD.
+
+# --- Camera agents: publish only under their own topic prefix ---
+user camera_agent
+topic write security/agents/camera/#
+
+# --- Drone agents ---
+user drone_agent
+topic write security/agents/drone/#
+
+# --- Generic IoT agents ---
+user iot_agent
+topic write security/agents/iot/#
+
+# --- PLC agents ---
+user plc_agent
+topic write security/agents/plc/#
+
+# --- Robot agents ---
+user robot_agent
+topic write security/agents/robot/#
+
+# --- Edge gateway: subscribes to all agent telemetry, publishes its own
+#     status/health under security/gateway/# ---
+user edge_gateway
+topic read security/agents/#
+topic write security/gateway/#
+
+# --- monsys: a separate deployment (frontend + its own Celery workers) that
+#     uses this broker purely as shared infrastructure between its own
+#     processes - celery-worker-siem/celery-worker-scanner publish scan
+#     results/alerts/telemetry under monitoring/#, and the monsys frontend
+#     subscribes to the same prefix to drive its dashboard. Unrelated to the
+#     security/# namespace used by the OT/IoT agents above. Password comes
+#     from MOSQUITTO_MONSYS_PASSWORD in docker/.env - must be set to the same
+#     value as MQTT_PASSWORD in monsys/.env.
+user monsys
+topic readwrite monitoring/#

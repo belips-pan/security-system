@@ -1,7 +1,10 @@
 {
   "agent_id": "PLC001",
   "agent_type": "plc_agent",
-  "api_key" : "kGha2GWsIsJhs6UTh3smngAPBqdMmeMd2XRKp317JeA",
+  "_api_key_note": "Placeholder only. Real deployments must provision a unique, randomly generated API key per device and inject it as a secret, not commit it here.",
+  "api_key": "CHANGE_ME_GENERATE_PER_DEVICE",
+  "mqtt_username": "plc_agent",
+  "mqtt_password": "CHANGE_ME",
   "location": "Warehouse_Main_Line_1",
   "telemetry_frequency_seconds": 15,
   "metrics": {

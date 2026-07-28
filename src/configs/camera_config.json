@@ -1,7 +1,10 @@
 {
   "agent_id": "CAM-WH-01",
   "agent_type": "camera_agent",
-  "api_key": "QIFDkxVGMQ0dzMnn90-GlqzBpMVr4425FRIYvAIyFTU",
+  "_api_key_note": "Placeholder only. Real deployments must provision a unique, randomly generated API key per device (e.g. via the backend's device-provisioning flow) and inject it as a secret, not commit it here.",
+  "api_key": "CHANGE_ME_GENERATE_PER_DEVICE",
+  "mqtt_username": "camera_agent",
+  "mqtt_password": "CHANGE_ME",
   "location": "Warehouse Zone A - Entrance",
   "last_update": "2025-09-01T10:00:00Z",
   "specs": {
@@ -44,15 +47,6 @@
     "logs": "security/cameras/CAM-WH-01/logs",
     "alerts": "security/cameras/CAM-WH-01/alerts",
     "anomalies": "security/cameras/CAM-WH-01/anomalies"
-  },
-  "anomaly_score": {
-    "calibration": "system_specific",
-    "current_score": 0.0,
-    "thresholds": {
-      "info": 0.2,
-      "warning": 0.5,
-      "critical": 0.8
-    }
   },
   "telemetry_frequency_seconds": 60
 }

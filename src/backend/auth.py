@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import request, jsonify, current_app
 import jwt
-from models import User, UserSession, AuditLog, db, Agent  # FIXED: Added Agent import
+from models import User, UserSession, AuditLog, db, Agent, hash_api_key  # FIXED: Added Agent import
 from datetime import datetime
 
 def token_required(f):
@@ -42,16 +42,16 @@ def api_key_required(f):
         if not api_key:
             return jsonify({'message': 'API key is missing'}), 401
         
-        # Check agent API key - FIXED: consistent with app.py
-        agent = Agent.query.filter_by(api_key=api_key).first()
+        # Check agent API key - FIXED: consistent with app.py (lookup by hash)
+        agent = Agent.query.filter_by(api_key=hash_api_key(api_key)).first()
         if agent:
             # Update last_seen
             agent.last_seen = datetime.utcnow()
             db.session.commit()
             return f(agent, *args, **kwargs)
         
-        # Check user API key
-        user = User.query.filter_by(api_key=api_key).first()
+        # Check user API key (lookup by hash)
+        user = User.query.filter_by(api_key=hash_api_key(api_key)).first()
         if user and user.is_active:
             return f(user, *args, **kwargs)
         

@@ -2,6 +2,7 @@
 *.db
 instance/
 *.sqlite*
+celerybeat-schedule
 
 # Environment files
 .env
