@@ -3,6 +3,12 @@
 
 echo "🚀 ΓΡΗΓΟΡΟ Startup..."
 
+# 0. Clean up any stopped/orphaned containers from a previous interrupted run
+# first - fixed container_names (docker_zookeeper_1 etc.) conflict with a
+# fresh `up` otherwise, even though `docker ps` won't show them (they're
+# stopped, not running).
+docker compose down --remove-orphans 2>/dev/null || true
+
 # 1. Start βασικά services ΜΟΝΟ
 docker compose up -d postgres redis zookeeper mosquitto
 
