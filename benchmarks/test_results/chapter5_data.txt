@@ -1,0 +1,20 @@
+"=== SCALABILITY RESULTS ===" 
+test_id,timestamp,duration_seconds,multiplier,active_agents,telemetry_rate,api_requests,api_errors,avg_response_time_ms,p95_response_time_ms,p99_response_time_ms,cpu_usage_percent,memory_usage_mb,network_in_mbps,network_out_mbps,db_connections,db_query_time_ms,alerts_generated,scans_completed,queue_size,successful_requests,failed_requests,total_requests,success_rate,metadata
+20260215_002913_mult1.0,2026-02-15 00:30:48.765405,60,1.0,310,12.266666666666667,736,194,2241.9452067950497,4793.72638463974,5006.385850906372,0,0,0,0,8,0,0,0,0,736,194,930,79.13978494623656,"{'multiplier': 1.0, 'agent_stats': {'duration': 94.114929, 'messages': 736, 'errors': 194, 'rate': 7.820225843234711}, 'monitoring_points': 46}"
+20260215_002913_mult2.0,2026-02-15 00:32:29.670893,60,2.0,155,15.5,930,0,1168.1419070048998,3036.6127729415884,3995.8309483528146,0,0,0,0,8,0,0,0,0,930,0,930,100.0,"{'multiplier': 2.0, 'agent_stats': {'duration': 90.487144, 'messages': 930, 'errors': 0, 'rate': 10.277703095591127}, 'monitoring_points': 45}"
+20260215_002913_mult5.0,2026-02-15 00:34:10.489261,60,5.0,62,16.533333333333335,992,0,263.2126555808129,865.1258111000061,1137.965354919434,0,0,0,0,8,0,0,0,0,992,0,992,100.0,"{'multiplier': 5.0, 'agent_stats': {'duration': 90.24786, 'messages': 992, 'errors': 0, 'rate': 10.991950390845833}, 'monitoring_points': 45}"
+20260215_002913_mult10.0,2026-02-15 00:35:51.360006,60,10.0,31,16.533333333333335,992,0,90.30977468336782,325.2881050109862,455.71470737457287,0,0,0,0,8,0,0,0,0,992,0,992,100.0,"{'multiplier': 10.0, 'agent_stats': {'duration': 90.210222, 'messages': 992, 'errors': 0, 'rate': 10.99653651223694}, 'monitoring_points': 45}"
+20260215_002913_mult20.0,2026-02-15 00:37:32.088574,60,20.0,17,17.85,1071,0,51.23486683593522,147.2569704055786,229.71601486206,0,0,0,0,8,0,0,0,0,1071,0,1071,100.0,"{'multiplier': 20.0, 'agent_stats': {'duration': 90.151505, 'messages': 1071, 'errors': 0, 'rate': 11.88000133774805}, 'monitoring_points': 45}"
+"\n\n=== COMPARATIVE ANALYSIS ===" 
+"\n\n=== ATTACK RESULTS ===" 
+name,description,attack_type,target,intensity,duration_seconds,expected_detection,executed,detected,detection_time_ms,false_positive,notes
+Port Scan Detection,Nmap port scan of backend server,port_scan,192.168.56.20,low,30,True,True,True,13254.908195339096,False,Scanned 100 ports
+Port Scan Detection,Nmap port scan of backend server,port_scan,192.168.56.20,medium,30,True,True,True,8257.902742814227,False,Scanned 500 ports
+Port Scan Detection,Nmap port scan of backend server,port_scan,192.168.56.20,high,30,True,True,True,7209.9645671718345,False,Scanned 1000 ports
+Brute Force Attack,Brute force attack on /api/auth/login,brute_force,/api/auth/login,low,60,True,True,True,11910.653039552973,False,"0 successful, 300 failed, avg latency 8.88ms"
+Brute Force Attack,Brute force attack on /api/auth/login,brute_force,/api/auth/login,medium,60,True,True,True,20632.347681628984,False,"0 successful, 1200 failed, avg latency 9.02ms"
+Brute Force Attack,Brute force attack on /api/auth/login,brute_force,/api/auth/login,high,60,True,True,True,13266.431475285955,False,"0 successful, 6000 failed, avg latency 9.38ms"
+Telemetry Flood,Flood backend with fake telemetry data,flood,/api/telemetry,low,30,True,True,True,9438.64657665864,False,"Sent 2537 requests, 2537 accepted, 0 failed"
+Telemetry Flood,Flood backend with fake telemetry data,flood,/api/telemetry,medium,30,True,True,True,8837.18666767291,False,"Sent 2294 requests, 2294 accepted, 0 failed"
+Telemetry Flood,Flood backend with fake telemetry data,flood,/api/telemetry,high,30,True,True,True,11333.81077133563,False,"Sent 2259 requests, 2259 accepted, 0 failed"
+"\n\n=== TEST CONFIG ===" 

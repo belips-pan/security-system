@@ -1,0 +1,10 @@
+name,description,attack_type,target,intensity,duration_seconds,expected_detection,executed,detected,detection_time_ms,false_positive,notes
+Port Scan Detection,Nmap port scan of backend server,port_scan,192.168.56.20,low,30,True,True,True,13254.908195339096,False,Scanned 100 ports
+Port Scan Detection,Nmap port scan of backend server,port_scan,192.168.56.20,medium,30,True,True,True,8257.902742814227,False,Scanned 500 ports
+Port Scan Detection,Nmap port scan of backend server,port_scan,192.168.56.20,high,30,True,True,True,7209.9645671718345,False,Scanned 1000 ports
+Brute Force Attack,Brute force attack on /api/auth/login,brute_force,/api/auth/login,low,60,True,True,True,11910.653039552973,False,"0 successful, 300 failed, avg latency 8.88ms"
+Brute Force Attack,Brute force attack on /api/auth/login,brute_force,/api/auth/login,medium,60,True,True,True,20632.347681628984,False,"0 successful, 1200 failed, avg latency 9.02ms"
+Brute Force Attack,Brute force attack on /api/auth/login,brute_force,/api/auth/login,high,60,True,True,True,13266.431475285955,False,"0 successful, 6000 failed, avg latency 9.38ms"
+Telemetry Flood,Flood backend with fake telemetry data,flood,/api/telemetry,low,30,True,True,True,9438.64657665864,False,"Sent 2537 requests, 2537 accepted, 0 failed"
+Telemetry Flood,Flood backend with fake telemetry data,flood,/api/telemetry,medium,30,True,True,True,8837.18666767291,False,"Sent 2294 requests, 2294 accepted, 0 failed"
+Telemetry Flood,Flood backend with fake telemetry data,flood,/api/telemetry,high,30,True,True,True,11333.81077133563,False,"Sent 2259 requests, 2259 accepted, 0 failed"
