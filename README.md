@@ -1,6 +1,8 @@
 
 # SECURITY-SYSTEM BACKEND- Industrial IoT Security Monitoring Platform 🛡️
 
+[Βίντεο εφαρμογής](https://www.youtube.com/watch?v=L4BQuUOEiGo)
+
 <https://img.shields.io/badge/Architecture-Microservices-blue>  
 <https://img.shields.io/badge/Docker-Containers-2496ED>  
 <https://img.shields.io/badge/Database-PostgreSQL-336791>  
